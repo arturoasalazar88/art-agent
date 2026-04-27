@@ -129,6 +129,24 @@ Nota: `--mmproj-use-cpu` no existe en este build. Se usa `--override-tensor ".*=
 
 ---
 
+### Upgrade Hardware Pendiente (cuando haya presupuesto)
+
+| Componente | Detalle | Costo estimado |
+|---|---|---|
+| Motherboard | ASUS Prime Z390-A LGA1151 | ~$150-200 USD segunda mano |
+| GPU adicional | Tesla P40 24GB (datacenter) | ~$80-150 USD segunda mano |
+| Cooler P40 | Adaptador activo obligatorio | ~$20-40 USD |
+| Fuente | 750W+ si necesario | ~$60-80 USD |
+| **Total** | **P40 + Z390-A** | **$310-470 USD** |
+
+Resultado del upgrade: 36GB VRAM total, ctx-size 32768+, LLM + ComfyUI simultáneos, ~100-140 tok/s.
+
+Alternativa superior: RTX 3090 24GB (~$600-800 USD) + mantener 3060 = misma VRAM pero arquitectura Ampere+Ampere, sin problemas de enfriamiento, más rápida.
+
+**Bloqueante actual:** B365M-A es mATX con chipset B365 — solo 1 slot PCIe x16 eléctrico. Requiere cambio de motherboard obligatorio para dual GPU.
+
+---
+
 ## Riesgos Activos
 
 | Riesgo | Severidad | Mitigación |

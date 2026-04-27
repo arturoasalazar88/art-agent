@@ -140,3 +140,55 @@
 - **Decisión:** Implementar el patrón de SPEC_context_engineering_agent.md — CLAUDE.md + 4 archivos de contexto + skills de sesión.
 - **Por qué:** Memoria persistente basada en archivos. Separación estable/volátil. El agente puede retomar cualquier sesión con `/context-start`.
 - **Descartado:** agent.md monolítico (anti-patrón "one giant context file").
+
+---
+
+## 2026-04-26 — Sesión 5: Auditoría del Agente + Research Hardware + Modelos
+
+### D23: Qwen-Image descartado del pipeline
+- **Contexto:** Se evaluó Qwen/Qwen-Image como posible herramienta para el pipeline visual.
+- **Opciones:** Integrar como generador alternativo a ComfyUI.
+- **Decisión:** Descartado — no es relevante para el pipeline actual.
+- **Por qué:** Es un modelo text-to-image (compite con ComfyUI/Pony Diffusion), no análisis visual. Fortalezas en text rendering dentro de imágenes — útil solo en fase futura de UI del juego. Sin GGUF disponible, corre en BF16, exigente en VRAM.
+- **Descartado:** Sin cuantización Q4, resoluciones nativas 1664×928 exceden capacidad cómoda.
+
+### D24: B365M-A confirmada como bloqueante para dual GPU
+- **Contexto:** Research de upgrade hardware RTX 3060 + Tesla P40 24GB.
+- **Hallazgo:** ASUS Prime B365M-A es mATX con chipset B365. Solo tiene 1 slot PCIe x16 eléctrico. El segundo slot es x1 eléctrico — P40 ni entraría físicamente.
+- **Decisión:** La B365M-A bloquea cualquier configuración dual GPU. Requiere cambio de motherboard obligatorio.
+- **Por qué:** Sin dos slots x16 eléctricos no hay dual GPU posible en este hardware.
+
+### D25: Plan upgrade P40 + Z390-A viable pero diferido por presupuesto
+- **Contexto:** Evaluar si el upgrade dual GPU es viable con presupuesto limitado.
+- **Opciones:** P40 + Z390-A ($310-470 USD total), RTX 3090 sola ($600-800 USD), RTX 3060 + RTX 3090 (más caro aún).
+- **Decisión:** Diferido. Viable técnicamente pero presupuesto no lo permite ahora.
+- **Detalles del plan cuando haya presupuesto:**
+  - Motherboard: ASUS Prime Z390-A LGA1151 (~$150-200 USD segunda mano)
+  - GPU: Tesla P40 24GB (~$80-150 USD segunda mano)
+  - Cooler activo para P40 (~$20-40 USD)
+  - Fuente 750W+ si es necesario (~$60-80 USD)
+  - Resultado: 36GB VRAM total, ctx-size 32768+, LLM + ComfyUI simultáneos
+- **Riesgo P40:** Pascal (2016), sin flash attention eficiente, requiere enfriamiento activo, 250W TDP.
+- **Alternativa superior:** RTX 3090 24GB (~$600-800) — misma arquitectura Ampere, más simple.
+- **Mejora inmediata de bajo costo:** RAM 32→64GB (~$40-60 USD) o descargar Q3_K_M (gratis, dobla ctx a ~16384).
+
+### D26: RTX 3060 + RTX 3090 analizada como mejor opción dual GPU
+- **Contexto:** ¿Es mejor P40 + 3060 o 3090 + 3060?
+- **Decisión:** 3090 + 3060 es superior técnicamente pero más cara.
+- **Por qué:** Ambas Ampere — mismo driver, misma arquitectura, flash attention funciona en las dos. llama.cpp maneja Ampere+Ampere mejor que Pascal+Ampere. Con 36GB combinados, `--tensor-split 12,24` distribuye capas eficientemente. Velocidad estimada 100-140 tok/s vs ~40 tok/s actual.
+- **Descartado por ahora:** Precio inaccesible con presupuesto actual.
+
+### D27: art-agent auditado y aprobado para producción
+- **Contexto:** Auditoría completa del agente context-engineering antes de usarlo con Claude Code.
+- **Resultado:** Agente listo para producción. Sigue SPEC al 100%. CLAUDE.md bien estructurado, 22 decisiones en memoria, skills funcionales.
+- **Issues identificados (resueltos en este cierre):**
+  - Decisiones de sesión 5 no capturadas → resuelto ahora
+  - Sin estrategia de archivado → documentada en D28
+  - Sin session_log.md → agregado como mejora pendiente
+  - next_steps.md sin hardware upgrade como item en cola → resuelto ahora
+- **Por qué aprobado:** Estructura correcta, separación Artista/Ingeniero codificada, memoria completa, skills funcionales.
+
+### D28: Estrategia de archivado para conversation_memory.md
+- **Contexto:** El archivo crecerá indefinidamente degradando rendimiento de carga.
+- **Decisión:** Cuando supere 50 decisiones, archivar las más antiguas a `context/conversation_memory_archive_YYYY.md` y mantener solo las últimas 30 en el archivo activo.
+- **Por qué:** Mantiene el archivo de carga pequeño y rápido. El archivo de decisiones activas debe ser manejable para el contexto de Claude Code.

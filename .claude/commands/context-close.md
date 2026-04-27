@@ -39,7 +39,10 @@ Solo si hubo cambios en:
 - Riesgos activos
 - Glosario (nuevos términos)
 
-### 6. Confirmar
+### 6. Limpiar working_memory.md (si existe)
+Si existe `context/working_memory.md`, eliminarlo o vaciarlo — el cierre de sesión exitoso invalida el checkpoint. La próxima sesión parte desde los archivos permanentes de memoria.
+
+### 7. Confirmar
 Imprime resumen de cierre:
 ```
 ✅ Sesión cerrada — [fecha]

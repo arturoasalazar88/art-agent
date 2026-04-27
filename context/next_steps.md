@@ -1,27 +1,25 @@
 # Próximos Pasos
 
-> Última actualización: 2026-04-24
+> Última actualización: 2026-04-26
 > Trigger de actualización: Cada cierre de sesión.
 
 ---
 
 ## Fase Actual
 
-**Pre-producción** — Infraestructura validada, pipeline diseñado, agente context-engineering implementado.
+**Pre-producción** — Infraestructura validada, pipeline diseñado, agente context-engineering implementado y auditado. Listo para iniciar implementación del MCP server y desarrollo del juego.
 
 ---
 
-## ✅ Completado en Última Sesión (2026-04-24)
+## ✅ Completado en Última Sesión (2026-04-26)
 
-- [x] Implementación del agente context-engineering siguiendo SPEC
-- [x] Creación de `CLAUDE.md` con las 4 secciones requeridas
-- [x] Creación de los 4 archivos de contexto (`context/`)
-- [x] Ingestión completa de `chat.txt` (3738 líneas) en `conversation_memory.md`
-- [x] Ingestión completa de `session-handoff-llm-survival-horror.md` en `project_state.md`
-- [x] Ingestión completa de `pipeline-context.md` en `project_state.md`
-- [x] Referencia activa de `mcp-specs-survival-horror.md` en `artifacts_registry.md`
-- [x] Creación de skills: `/context-start`, `/context-close`, `/context-save`
-- [x] Reorganización de archivos fuente a `inputs/`
+- [x] Auditoría completa del agente art-agent — aprobado para producción (D27)
+- [x] Decisiones de sesiones anteriores transferidas a conversation_memory.md (D23–D28)
+- [x] Research hardware dual GPU completado — P40 + Z390-A viable, diferido por presupuesto (D24, D25)
+- [x] Qwen-Image evaluado y descartado del pipeline (D23)
+- [x] RTX 3060 + RTX 3090 analizada como mejor opción dual GPU (D26)
+- [x] Estrategia de archivado para conversation_memory.md definida (D28)
+- [x] Permisos de escritura del agente activados en el repo art-agent
 
 ---
 
@@ -41,15 +39,17 @@
 
 ## ⬜ Cola (Próximas Acciones)
 
+- [ ] Descargar Q3_K_M de SuperGemma — dobla ctx-size a ~16384 sin costo (mejora inmediata disponible)
+- [ ] Agregar session_log.md a context/ — una línea por sesión para audit trail
 - [ ] System prompts por modelo adaptados al workflow de survival horror
 - [ ] Autenticación `--api-key` para los servicios llama-server
 - [ ] Pipeline automatizado LLM → imagen (Ornstein genera prompt → ComfyUI ejecuta)
 - [ ] Workflow de storyboard con style lock en ComfyUI
 - [ ] Instalar IPAdapter en ComfyUI para consistencia de personajes
 - [ ] Script de batch generation para storyboard completo via API ComfyUI
-- [ ] Evaluar Q3_K_M de SuperGemma para duplicar ventana de contexto (~16384)
 - [ ] Estructura base del juego en Three.js
 - [ ] Definir fichas de personaje con Ornstein
+- [ ] **[FUTURO/PRESUPUESTO]** Hardware upgrade: P40 24GB + ASUS Z390-A LGA1151 (~$310-470 USD) — 36GB VRAM total, ctx 32768+, LLM + ComfyUI simultáneos. Alternativa superior: RTX 3090 (~$600-800 USD).
 
 ---
 
@@ -62,11 +62,14 @@
 - ComfyUI tiene API REST en `:8188` — el MCP la envuelve
 - El MCP NUNCA expone contenido de prompts en respuestas — solo rutas y status
 - La implementación sigue exactamente las specs en `inputs/mcp-specs-survival-horror.md`
+- Switch de modelos: `~/switch-model.sh [ornstein|supergemma|trevorjs|vision|image]`
+- ctx-size máximo Q4_K_M: 8192 tokens — NO subir sin bajar a Q3_K_M primero
 
 ---
 
 ## Preguntas para el Usuario al Inicio de Sesión
 
+- ¿Hubo cambios en el servidor desde la última sesión?
 - ¿Tienes imágenes de referencia listas para definir la estética del juego?
-- ¿Quieres empezar con el MCP server o con el desarrollo del juego en Three.js?
-- ¿Has probado los modelos locales con prompts reales del juego desde la última sesión?
+- ¿Empezamos con el MCP server o con la descarga de Q3_K_M?
+- ¿Has probado los modelos locales con prompts reales del juego?

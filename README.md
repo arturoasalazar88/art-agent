@@ -37,25 +37,147 @@ art-agent/
 ├── context/
 │   ├── project_state.md               ← Infraestructura, equipo, modelos, riesgos (estable)
 │   ├── artifacts_registry.md          ← Todos los archivos y su estado
-│   ├── conversation_memory.md         ← Log comprimido de decisiones (D01–D22+)
-│   └── next_steps.md                  ← Estado actual y próximas acciones (volátil)
+│   ├── conversation_memory.md         ← Log comprimido de decisiones (D01–D28+)
+│   ├── next_steps.md                  ← Estado actual y próximas acciones (volátil)
+│   ├── session_log.md                 ← Una línea por sesión — audit trail
+│   └── working_memory.md              ← Checkpoint a corto plazo (volátil, se crea con /context-checkpoint)
 ├── .claude/commands/
 │   ├── context-start.md               ← /context-start — carga memoria, abre sesión
 │   ├── context-close.md               ← /context-close — guarda memoria, cierra sesión
-│   └── context-save.md                ← /context-save — persistencia on-demand
+│   ├── context-save.md                ← /context-save — persistencia on-demand
+│   └── context-checkpoint.md          ← /context-checkpoint — snapshot de corto plazo
 ├── inputs/                            ← Documentos fuente (read-only)
 ├── outputs/                           ← Artefactos generados por el agente
 └── scripts/                           ← Scripts de automatización
 ```
 
-La memoria está dividida por volatilidad:
+---
 
-| Archivo | Se actualiza | Contiene |
+## Sistema de Memoria
+
+La memoria está separada en dos capas: **permanente** y **corto plazo**.
+
+### Memoria Permanente
+
+Cinco archivos que juntos forman el estado completo del proyecto:
+
+| Archivo | Volatilidad | Contiene |
 |---|---|---|
-| `project_state.md` | Raramente | Infraestructura, equipo, hardware, glosario |
-| `artifacts_registry.md` | Por artefacto | Todos los archivos con estado y descripción |
-| `conversation_memory.md` | Por sesión | Decisiones comprimidas: contexto → opciones → por qué |
-| `next_steps.md` | Cada sesión | Completado, urgente, en progreso, en cola |
+| `project_state.md` | Raramente cambia | Infraestructura, hardware, modelos, servicios, glosario, riesgos, upgrade pendiente |
+| `artifacts_registry.md` | Por artefacto | Todos los archivos con estado (✅ Activo / 🔒 Histórico / 🔧 En progreso) |
+| `conversation_memory.md` | Por sesión | Decisiones comprimidas: contexto → opciones → decisión → por qué |
+| `next_steps.md` | Cada sesión | Completado, urgente (🔴), en progreso (🟡), en cola (⬜) |
+| `session_log.md` | Cada sesión | Una línea por sesión — fecha, trabajo, artefactos, decisiones |
+
+### Memoria a Corto Plazo
+
+Un archivo volátil creado bajo demanda:
+
+| Archivo | Cuándo existe | Contiene |
+|---|---|---|
+| `working_memory.md` | Solo si la sesión fue interrumpida o se hizo checkpoint | Tarea activa, hilo de conversación reciente, decisiones no formalizadas, trabajo en vuelo, próximo paso exacto |
+
+**Ciclo de vida de working_memory.md:**
+1. Se crea o sobreescribe con `/context-checkpoint`
+2. Se carga automáticamente en `/context-start` si existe
+3. Se elimina al hacer `/context-close` exitoso
+
+---
+
+## Skills — Comandos de Sesión
+
+### `/context-start` — Apertura de sesión
+
+Carga los 5 archivos de memoria en orden. Presenta al usuario:
+- Estado del proyecto y fase actual
+- ⚡ Checkpoint activo (si existe `working_memory.md`) con pregunta de retomar
+- Decisiones activas recientes
+- Pendientes por prioridad (🔴 urgente / 🟡 en progreso / ⬜ en cola)
+- Último artefacto registrado
+- Pregunta sobre qué trabajar hoy
+
+```
+/context-start
+```
+
+---
+
+### `/context-close` — Cierre de sesión
+
+Ejecuta en orden:
+1. Resume lo logrado en la sesión
+2. Actualiza `next_steps.md` — marca completados, agrega pendientes
+3. Añade nuevas decisiones a `conversation_memory.md`
+4. Actualiza `artifacts_registry.md` por archivos nuevos o modificados
+5. Actualiza `project_state.md` si hubo cambios de infraestructura
+6. Limpia `working_memory.md` — el cierre exitoso invalida el checkpoint
+7. Confirma con resumen de cierre
+
+```
+/context-close
+```
+
+**Este skill no es opcional.** Cada sesión debe terminar con `/context-close`. Si el usuario olvida, el agente lo recuerda.
+
+---
+
+### `/context-save` — Guardado on-demand
+
+Persiste una decisión, artefacto o cambio de infraestructura a los archivos permanentes en cualquier momento de la sesión, sin esperar al cierre.
+
+Úsalo cuando:
+- Se toma una decisión importante que no quieres perder si la sesión se interrumpe
+- Se instala o configura algo nuevo en el servidor
+- Se descubre una restricción técnica o gotcha
+- El usuario pide explícitamente guardar algo
+
+```
+/context-save
+```
+
+---
+
+### `/context-checkpoint` — Snapshot de corto plazo
+
+Crea o sobreescribe `context/working_memory.md` con un snapshot completo del hilo vivo: qué se está haciendo, conversación reciente, decisiones no formalizadas, trabajo en vuelo, y el próximo paso exacto.
+
+**Cuándo usarlo:**
+- Cada ~30 mensajes como higiene preventiva
+- Antes de operaciones largas (descargas, compilaciones, esperar procesos del servidor)
+- Cuando el contexto se está volviendo denso
+- Antes de una operación con riesgo de ruptura de sesión
+
+```
+/context-checkpoint
+```
+
+**Recuperación tras compactación o ruptura:**
+1. `/context-start` detecta automáticamente el checkpoint y lo anuncia ⚡
+2. El agente pregunta si retomar desde el checkpoint o empezar tarea nueva
+3. Si se retoma, las decisiones pendientes del checkpoint se formalizan con `/context-save`
+4. Al terminar, `/context-close` limpia el checkpoint
+
+---
+
+## Flujo de Sesión Típica
+
+```
+Abrir Claude Code en el repo art-agent
+          ↓
+/context-start
+  → carga 5 archivos de memoria
+  → detecta checkpoint si existe
+  → presenta resumen + pregunta qué trabajar
+          ↓
+Trabajo de la sesión
+  → /context-checkpoint cada ~30 mensajes (preventivo)
+  → /context-save cuando se toma una decisión importante
+          ↓
+/context-close
+  → actualiza todos los archivos de memoria
+  → limpia working_memory.md
+  → confirma cierre
+```
 
 ---
 
@@ -74,12 +196,6 @@ Abre este repositorio en Claude Code y ejecuta:
 /context-start
 ```
 
-El agente carga todos los archivos de memoria y presenta:
-- Fase actual del proyecto y estado de infraestructura
-- Las 3–5 decisiones activas más recientes
-- Items pendientes por prioridad (🔴 urgente / 🟡 en progreso / ⬜ en cola)
-- Una pregunta sobre en qué trabajar hoy
-
 Sin briefing manual. El agente ya sabe todo.
 
 ### Cerrar una sesión
@@ -88,20 +204,12 @@ Sin briefing manual. El agente ya sabe todo.
 /context-close
 ```
 
-El agente:
-1. Resume lo que se logró en la sesión
-2. Actualiza `next_steps.md`
-3. Añade nuevas decisiones a `conversation_memory.md`
-4. Actualiza `artifacts_registry.md` por cada archivo nuevo o modificado
-5. Confirma que todos los archivos de memoria fueron guardados
-
-### Guardar en medio de una sesión
+### Guardar progreso durante la sesión
 
 ```
-/context-save
+/context-save          ← para decisiones individuales
+/context-checkpoint    ← para snapshot completo del hilo
 ```
-
-Úsalo en cualquier momento para persistir una decisión o descubrimiento sin esperar al cierre de sesión.
 
 ---
 
@@ -112,7 +220,7 @@ El agente:
 | llama-server (Ornstein / SuperGemma / TrevorJS / Vision) | `10.1.0.105` | 8012 | ✅ Operativo |
 | Open WebUI | `10.1.0.105` | 3000 | ✅ Operativo |
 | ComfyUI | `10.1.0.105` | 8188 | ✅ Operativo |
-| MCP server | `10.1.0.105` | 8189 | 🔧 Pendiente |
+| MCP server | `10.1.0.105` | 8189 | 🔧 Pendiente implementación |
 
 Cambio entre modos con un solo comando en el servidor Debian:
 
@@ -148,13 +256,31 @@ El agente ingeniero opera solo desde el paso `generate_image` en adelante. Nunca
 
 ---
 
+## Reglas del Agente Ingeniero
+
+1. **Idioma:** Siempre en español
+2. **Separación Artista/Ingeniero:** Nunca genera contenido creativo
+3. **Prompts son opacos:** Nunca lee `prompt` ni `negative_prompt` de archivos JSON
+4. **Registry antes de crear:** Verifica `artifacts_registry.md` antes de generar archivos
+5. **Restricciones de hardware:** RTX 3060 12GB — ctx-size máximo 8192 con Q4_K_M
+6. **Cierre obligatorio:** Cada sesión termina con `/context-close`
+7. **inputs/ es read-only:** Nunca modificar documentos fuente
+8. **MCP specs son la fuente de verdad:** `inputs/mcp-specs-survival-horror.md`
+9. **Registrar todo:** Cada archivo nuevo va a `artifacts_registry.md`
+10. **Decisiones a memoria:** Formato: contexto → opciones → decisión → por qué
+11. **Checkpoint proactivo:** `/context-checkpoint` cada ~30 mensajes
+12. **Recuperación de sesión rota:** Cargar `working_memory.md` si existe al retomar
+
+---
+
 ## Principios de Diseño
 
 - **La memoria son archivos, no prompts.** Si no está escrito en `context/`, no existe en la próxima sesión.
-- **Separar lo estable de lo volátil.** `project_state.md` cambia raramente. `next_steps.md` cambia cada sesión.
+- **Separar lo estable de lo volátil.** `project_state.md` cambia raramente. `next_steps.md` cambia cada sesión. `working_memory.md` es desechable.
 - **Comprimir decisiones, no conversaciones.** El log de memoria captura el *por qué*, no lo que se dijo.
-- **El registry es el contrato.** Todo archivo producido por el agente debe registrarse antes de cerrar la sesión.
+- **El registry es el contrato.** Todo archivo producido debe registrarse antes de cerrar la sesión.
 - **Artista e Ingeniero nunca se mezclan.** El contenido creativo y la ejecución técnica son manejados por actores completamente separados.
+- **El checkpoint es seguro de red.** `working_memory.md` permite recuperar cualquier sesión interrumpida sin perder el hilo.
 
 ---
 
