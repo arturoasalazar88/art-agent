@@ -1,0 +1,32 @@
+schema_version: 2
+pack_id: art-agent
+language: es
+
+autoload:
+  rules:
+    - rules/core.md
+  workflows:
+    - workflows/session-lifecycle.md
+    - workflows/recovery-from-checkpoint.md
+
+skills:
+  context-start: skills/context-start/SKILL.md
+  context-save: skills/context-save/SKILL.md
+  context-checkpoint: skills/context-checkpoint/SKILL.md
+  context-close: skills/context-close/SKILL.md
+  session-lifecycle: skills/session-lifecycle/SKILL.md
+  recovery-from-checkpoint: skills/recovery-from-checkpoint/SKILL.md
+  opencode-usage: skills/opencode-usage/SKILL.md
+  stitch-mock: skills/stitch-mock/SKILL.md
+
+commands:
+  /context-start: commands/context-start.md
+  /context-save: commands/context-save.md
+  /context-checkpoint: commands/context-checkpoint.md
+  /context-close: commands/context-close.md
+  /context-syat: commands/context-syat.md
+  /stitch-mock: commands/stitch-mock.md
+
+adapters:
+  codex: adapters/codex.yaml
+  opencode: adapters/opencode.yaml

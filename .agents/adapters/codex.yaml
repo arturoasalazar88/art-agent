@@ -1,0 +1,11 @@
+runtime: codex
+language: es
+autoload_manifest: ../manifest.yaml
+rules:
+  - ../rules/core.md
+command_directory: ../commands
+skill_directory: ../skills
+workflow_directory: ../workflows
+default_command: /context-start
+aliases:
+  /context-syat: /context-start
