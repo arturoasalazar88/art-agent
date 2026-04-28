@@ -11,22 +11,27 @@
 
 ---
 
-## ✅ Completado en Última Sesión (2026-04-26)
+## ✅ Completado en Última Sesión (2026-04-28)
 
-- [x] Auditoría completa del agente art-agent — aprobado para producción (D27)
-- [x] Decisiones de sesiones anteriores transferidas a conversation_memory.md (D23–D28)
-- [x] Research hardware dual GPU completado — P40 + Z390-A viable, diferido por presupuesto (D24, D25)
-- [x] Qwen-Image evaluado y descartado del pipeline (D23)
-- [x] RTX 3060 + RTX 3090 analizada como mejor opción dual GPU (D26)
-- [x] Estrategia de archivado para conversation_memory.md definida (D28)
-- [x] Permisos de escritura del agente activados en el repo art-agent
+- [x] Motor del juego cambiado de Three.js a Unity + Unity MCP — project_state.md actualizado (D29)
+- [x] Arquitectura de 5 capas aprobada e ingestada en contexto (D30)
+- [x] Novelización mutable como base estratégica definida (D31)
+- [x] Sistema de memoria por capas + presupuesto de tokens documentado (D32)
+- [x] Clasificación de cambios narrativos (Expansión / Ajuste local / Retcon) (D33)
+- [x] 15 formatos de handoff canónicos documentados en project_state.md (D34, D36)
+- [x] 11 workflows operativos granulares ingestados (D35)
+- [x] Trazabilidad obligatoria de artefactos definida — 5 campos mínimos (D37)
+- [x] Estructura de directorios `~/horror-game/` aprobada (D38)
+- [x] Política de contexto 7 niveles + artefactos de compresión obligatorios (D39)
+- [x] 3 inputs ingestados: spec-workflow, handoff-workflows-detallados, formatos_de_handoff (generador)
 
 ---
 
 ## 🔴 Urgente
 
 - [ ] **Implementar MCP server** — specs completas en `inputs/mcp-specs-survival-horror.md`. Python + FastMCP, puerto 8189. Las 7 herramientas: save_prompt, list_prompts, get_prompt_metadata, generate_image, get_job_status, list_workflows, list_models.
-- [ ] **Crear estructura `~/horror-game/assets/`** en el servidor Debian — storyboard/, characters/, environments/, workflows/
+- [ ] **Crear estructura de directorios en servidor Debian** — `~/horror-game/` con: `canon/`, `chapters/`, `chapter_summaries/`, `entities/` (characters, locations, factions, creatures), `scene_specs/`, `branch_graphs/`, `assets/`, `jobs/unity/`, `validation/`, `refs/images/`
+- [ ] **Investigar Unity MCP** — evaluar servidor MCP para Unity Editor, compatibilidad con el pipeline local, tipos de herramientas disponibles (import_prefab, place_object, assign_material, add_trigger, etc.)
 
 ---
 
@@ -47,9 +52,24 @@
 - [ ] Workflow de storyboard con style lock en ComfyUI
 - [ ] Instalar IPAdapter en ComfyUI para consistencia de personajes
 - [ ] Script de batch generation para storyboard completo via API ComfyUI
-- [ ] Estructura base del juego en Three.js
+- [ ] Estructura base del juego en Unity — escena inicial, player controller, primer nivel
 - [ ] Definir fichas de personaje con Ornstein
 - [ ] **[FUTURO/PRESUPUESTO]** Hardware upgrade: P40 24GB + ASUS Z390-A LGA1151 (~$310-470 USD) — 36GB VRAM total, ctx 32768+, LLM + ComfyUI simultáneos. Alternativa superior: RTX 3090 (~$600-800 USD).
+
+---
+
+## Contexto del Workflow Creativo (2026-04-28)
+
+El proyecto adoptó un nuevo workflow maestro de 5 fases documentado en `inputs/spec-workflow-creativo-orquestador-memoria.md`:
+1. Novelización mutable (SuperGemma → Ornstein)
+2. Consolidación canon (story_bible + derivados)
+3. Extracción de interactividad (Ornstein → InteractiveSceneSpec)
+4. Generación de assets (TrevorJS/Vision → Ornstein → AssetSpec3D)
+5. Orquestación Unity (contratos → Unity MCP)
+
+**Motor cambiado:** Three.js → **Unity + Unity MCP**
+**Ornstein** es el normalizador entre horror local y orquestador técnico.
+**Regla central:** el orquestador nunca ve horror explícito — solo contratos normalizados.
 
 ---
 

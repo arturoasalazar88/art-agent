@@ -1,6 +1,6 @@
 # Registro de Artefactos
 
-> Última actualización: 2026-04-24 (auditoría)
+> Última actualización: 2026-04-28
 > Trigger de actualización: Cada vez que se crea, modifica o depreca un archivo.
 
 ---
@@ -46,6 +46,9 @@
 | `inputs/session-handoff-llm-survival-horror.md` | 🔒 Histórico | 2026-04-23 | Handoff original — superseded por `context/project_state.md` |
 | `inputs/mcp-specs-survival-horror.md` | ✅ Activo | 2026-04-23 | Specs técnicas del MCP server — **referencia activa para implementación**, NO ingestado en context/ |
 | `inputs/pipeline-context.md` | 🔒 Histórico | 2026-04-24 | Pipeline context original — superseded por CLAUDE.md + context/ |
+| `inputs/spec-workflow-creativo-orquestador-memoria.md` | ✅ Activo | 2026-04-28 | Spec de workflow creativo, orquestación Unity MCP y sistema de memoria — **referencia activa**, NO ingestada en context/ |
+| `inputs/handoff-workflows-detallados-llms-orquestador.md` | ✅ Activo | 2026-04-28 | 11 workflows granulares por modelo, contratos de handoff, trazabilidad, estructura de directorios, política de contexto — **referencia activa** para operación diaria |
+| `inputs/formatos_de_handoff.md` | 🔒 Histórico | 2026-04-28 | Script Python que generó `handoff-workflows-detallados-llms-orquestador.md` — contenido idéntico, ya ingestado |
 
 ---
 

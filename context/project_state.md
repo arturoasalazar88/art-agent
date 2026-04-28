@@ -10,14 +10,14 @@
 | Campo | Valor |
 |---|---|
 | Nombre | Survival Horror Video Game |
-| Tipo | Videojuego survival horror — Three.js + Blender |
+| Tipo | Videojuego survival horror — Unity + Unity MCP + Blender |
 | Director | Arturo Salazar |
 | Inicio | Abril 2026 |
 | Fase actual | Pre-producción — infraestructura validada, pipeline diseñado |
 
 ### Objetivo Estratégico
 
-Construir un videojuego de survival horror con un pipeline de producción completamente local: LLMs para escritura creativa y prompts, ComfyUI para generación de assets 2D, Blender para modelado 3D, y Three.js para el motor del juego. El pipeline separa estrictamente las responsabilidades creativas (humano + modelos uncensored) de las técnicas (agentes de IA censored).
+Construir un videojuego de survival horror con un pipeline de producción completamente local: LLMs para escritura creativa y prompts, ComfyUI para generación de assets 2D, Blender para modelado 3D, y Unity como motor del juego. Unity MCP actúa como capa de ensamblaje interactivo (gestión de assets, escenas, scripts y GameObjects desde un agente). El pipeline separa estrictamente las responsabilidades creativas (humano + modelos uncensored) de las técnicas (agentes de IA censored).
 
 ---
 
@@ -31,7 +31,7 @@ Construir un videojuego de survival horror con un pipeline de producción comple
 
 ### El Ingeniero — Agente IA (Claude Code / OpenCode / Gemini CLI / Codex)
 - Ejecución técnica exclusivamente
-- Arquitectura del juego, código Three.js, pipeline Blender
+- Arquitectura del juego, Unity + Unity MCP, pipeline Blender
 - Orquestación de MCP y ComfyUI
 - NUNCA genera contenido creativo (lore, prompts gore, historia)
 - NUNCA lee campos `prompt` o `negative_prompt` de archivos JSON
@@ -190,11 +190,83 @@ La regla fundamental del proyecto. El contenido creativo (lore, prompts, gore) l
 Agente con memoria persistente basada en archivos. Memoria separada en estable (`project_state.md`) y volátil (`next_steps.md`). Decisiones comprimidas en `conversation_memory.md`. Artefactos registrados en `artifacts_registry.md`. Skills de sesión para automatizar carga y guardado.
 
 ### Pipeline de 5 Fases
-1. Investigación estética (Vision + referencias)
-2. Lore y narrativa (SuperGemma/TrevorJS → Ornstein)
-3. Storyboard — lado Artista (TrevorJS → save_prompt MCP)
-4. Generación de imágenes — lado Ingeniero (generate_image MCP → ComfyUI)
-5. Desarrollo del juego (Three.js + Blender + agente ingeniero)
+1. **Novelización mutable** — SuperGemma genera fragmentos crudos; Ornstein estructura capítulos y canon
+2. **Consolidación de canon** — story_bible, fichas, timeline, change_log; Ornstein como normalizador
+3. **Extracción de interactividad** — Ornstein convierte capítulos aprobados en flags, choices, branches
+4. **Generación de assets** — TrevorJS/Vision producen material; Ornstein traduce a specs técnicas (AssetSpec3D, CreatureVariantCard, etc.)
+5. **Orquestación Unity** — contratos estructurados → Unity MCP → escenas, GameObjects, scripts en editor
+
+### Regla de Separación Semántica
+El orquestador técnico (Unity MCP) nunca recibe horror explícito en lenguaje natural. Solo recibe contratos normalizados: IDs, perfiles de material, flags, animation_hooks. Ornstein es la capa de traducción entre creación local y montaje técnico.
+
+### Sistema de Memoria por Capas
+- **Global**: premisa, tono, reglas del mundo, glosario — siempre comprimida en contexto
+- **Semántica**: personajes, lugares, criaturas, facciones — retrieval por entidad
+- **Episódica**: resúmenes de capítulos y escenas — retrieval por capítulo/acto
+- **Trabajo**: objetivo actual, escena activa — temporal, siempre presente
+- **Cambios**: retcons, ajustes, impacto pendiente — solo cuando aplica
+
+### Tipos de Cambio Narrativo
+- **Expansión**: agrega detalle sin alterar hechos canónicos
+- **Ajuste local**: modifica escena o capítulo sin impacto estructural amplio
+- **Retcon**: cambia hechos canónicos, obliga a reconciliar otras piezas
+
+### Formatos de Handoff Definidos
+| Formato | Origen | Descripción |
+|---|---|---|
+| `StoryBibleEntry` | Ornstein | Entrada canónica con hechos, entidades, tono, estado |
+| `ChapterMemoryRecord` | Ornstein | Capítulo: resumen corto/medio, hechos, riesgos de continuidad |
+| `InteractiveSceneSpec` | Ornstein | Escena interactiva: flags, choices, convergencias, audio, luz |
+| `BranchGraphSpec` | Ornstein | Grafo de bifurcaciones, fusiones y condiciones de arco |
+| `EncounterFlow` | Ornstein | Flujo de encuentro con jugador |
+| `PlayerGoalMap` | Ornstein | Mapa de objetivos del jugador por escena |
+| `NarrativeTriggerMap` | Ornstein | Triggers narrativos por evento |
+| `AssetSpec3D` | Ornstein | Spec técnica: material, animaciones, spawn, prefab target Unity |
+| `CreatureVariantCard` | Ornstein (de TrevorJS) | Ficha de criatura: variantes, materiales, spawn, animaciones |
+| `MaterialProfile` | Ornstein (de TrevorJS) | Perfil de material y texturas |
+| `ArtDirectionBrief` | Ornstein (de Vision) | Brief de dirección de arte desde análisis de referencia |
+| `LightingProfile` | Ornstein (de Vision) | Perfil de iluminación extraído de referencias |
+| `CameraMoodProfile` | Ornstein (de Vision) | Perfil de cámara y mood visual |
+| `TextureReferenceCard` | Ornstein (de Vision) | Tarjeta de referencia de texturas |
+| `UnityPlacementJob` | Ornstein | Job de ensamblaje: lista de acciones MCP para Unity Editor |
+| `UnitySceneAssemblyJob` | Ornstein | Job completo de ensamblaje de escena en Unity |
+
+### Trazabilidad Obligatoria (campos mínimos en todo artefacto)
+```json
+{
+  "source_model": "SuperGemma",
+  "normalized_by": "Ornstein",
+  "source_refs": ["ch_04", "creatures.c03"],
+  "change_log_refs": ["change_YYYY_MM_DD_NNN"],
+  "unity_job_refs": ["job_scene_XXX"]
+}
+```
+
+### Estructura de Directorios en Servidor (objetivo)
+```
+~/horror-game/
+  canon/
+    story_bible.md / world_rules.md / timeline.md
+    canon_index.json / change_log.json
+  chapters/          ch_01.md, ch_02.md...
+  chapter_summaries/ ch_01.json, ch_02.json...
+  entities/
+    characters/ / locations/ / factions/ / creatures/
+  scene_specs/       <scene_id>.json
+  branch_graphs/     <arc_id>.json
+  assets/            <asset_id>.json
+  jobs/unity/        <job_id>.json
+  validation/        reconciliation_report.json...
+  refs/images/       referencias visuales
+```
+
+### Secuencias Diarias Operativas
+- **Día de novelización**: SuperGemma → borrador → Ornstein → canon + memorias
+- **Día de criaturas**: TrevorJS → brief extremo → Vision (si hay refs) → Ornstein → AssetSpec3D
+- **Día de adaptación interactiva**: capítulo aprobado → Ornstein → InteractiveSceneSpec → UnityPlacementJob → orquestador → Unity MCP → validación
+
+> Spec de alto nivel: `inputs/spec-workflow-creativo-orquestador-memoria.md`
+> Workflows operativos detallados: `inputs/handoff-workflows-detallados-llms-orquestador.md`
 
 ---
 

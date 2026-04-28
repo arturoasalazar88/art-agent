@@ -10,3 +10,4 @@
 2026-04-23 | Pipeline Artista/Ingeniero + MCP specs + SuperGemma Vision + switch vision | llama-vision.service, mcp-specs-survival-horror.md, pipeline-context.md | D12–D21
 2026-04-24 | Context Engineering Agent — art-agent implementado y bootstrapped | CLAUDE.md, context/*.md, .claude/commands/*.md | D22
 2026-04-26 | Auditoría art-agent + research hardware dual GPU + evaluación modelos (Qwen-Image, Qwen3) | context/*.md actualizados, session_log.md creado | D23–D28
+2026-04-28 | Ingesta specs workflow creativo + orquestador Unity + sistema memoria — motor cambiado Three.js→Unity | project_state.md, conversation_memory.md, next_steps.md, artifacts_registry.md actualizados | D29–D39

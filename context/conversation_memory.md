@@ -1,6 +1,6 @@
 # Memoria de Conversación — Log de Decisiones
 
-> Última actualización: 2026-04-24
+> Última actualización: 2026-04-28
 > Formato: Cronológico, comprimido. Decisiones y su WHY, no transcripción.
 > Trigger de actualización: Después de cada sesión donde se toma una decisión significativa.
 
@@ -187,6 +187,69 @@
   - Sin session_log.md → agregado como mejora pendiente
   - next_steps.md sin hardware upgrade como item en cola → resuelto ahora
 - **Por qué aprobado:** Estructura correcta, separación Artista/Ingeniero codificada, memoria completa, skills funcionales.
+
+---
+
+## 2026-04-28 — Sesión 6: Workflow Creativo + Sistema de Memoria + Unity
+
+### D29: Motor del juego cambiado de Three.js a Unity + Unity MCP
+- **Contexto:** Review del spec `inputs/spec-workflow-creativo-orquestador-memoria.md` reveló que la decisión de motor había evolucionado.
+- **Decisión:** Unity como motor principal. Unity MCP como capa de ensamblaje interactivo (gestión de assets, escenas, scripts, GameObjects desde agente).
+- **Por qué:** Unity MCP provee herramientas estructuradas para que un agente opere el editor programáticamente. Mejor fit para el pipeline de orquestación que Three.js manual.
+- **Impacto:** Actualizado en `project_state.md` y `next_steps.md`.
+
+### D30: Arquitectura de 5 capas aprobada
+- **Contexto:** Necesidad de separar creación sensible de montaje técnico.
+- **Decisión:** 5 capas — ideación, canon, normalización, orquestación, implementación Unity.
+- **Por qué:** La capa de normalización (Ornstein) es el firewall entre horror explícito local y el orquestador técnico. El orquestador nunca consume descripción grotesca, solo contratos normalizados.
+
+### D31: Novelización mutable como base del proyecto (antes que interactividad)
+- **Contexto:** ¿Construir juego y narrativa en paralelo o secuencialmente?
+- **Decisión:** Primero story bible + novela base; después extracción de interactividad.
+- **Por qué:** La interactividad sin canon sólido genera incoherencia estructural. Canon primero = trazabilidad lore → escena → asset.
+
+### D32: Sistema de memoria por capas con presupuesto de tokens definido
+- **Contexto:** Ventana de 8,192 tokens — no cabe la novela completa.
+- **Decisión:** 5 capas de memoria (global, semántica, episódica, trabajo, cambios) + estrategia de contexto mínimo suficiente.
+- **Presupuesto:** instrucciones 400–700 / canon global 500–900 / entidades 1,000–1,800 / capítulo activo 800–1,500 / continuidad vecina 400–800 / resto para generación.
+- **Por qué:** Retrieval selectivo por tarea activa, no dump completo. Regla: si un bloque no cambia la decisión del modelo para esta tarea, no entra al prompt.
+
+### D33: Clasificación de cambios narrativos (Expansión / Ajuste local / Retcon)
+- **Contexto:** ¿Cómo mantener coherencia cuando la novela muta?
+- **Decisión:** Todo cambio narrativo clasificado en una de tres categorías que determinan qué actualizar y qué mandar a reconciliación.
+- **Por qué:** Sin clasificación, un cambio menor puede pasar desapercibido y romper continuidad en capítulos futuros.
+
+### D34: Formatos de handoff canónicos definidos
+- **Contexto:** Necesidad de contratos estructurados entre capas del pipeline.
+- **Decisión:** 4 formatos JSON: `StoryBibleEntry`, `InteractiveSceneSpec`, `AssetSpec3D`, `ChapterMemoryRecord`.
+- **Por qué:** Contratos explícitos permiten que el orquestador técnico opere sin ambigüedad y sin ver contenido sensible.
+
+### D35: 11 workflows granulares definidos por modelo
+- **Contexto:** El spec anterior definía 5 fases de alto nivel. El handoff detalla la operación concreta.
+- **Decisión:** 11 workflows operativos: (1) ideación libre, (2) escritura capítulo, (3) reescritura capítulo, (4) extracción de lore canonizable, (5) diseño criaturas/horror visual, (6) análisis referencias visuales, (7) extracción interactividad, (8) normalización para orquestador, (9) orquestador, (10) Unity MCP, (11) validación y reconciliación.
+- **Por qué:** Cada workflow define modelo, entradas, output contract y reglas de postproceso. Operación sin ambigüedad.
+- **Fuente:** `inputs/handoff-workflows-detallados-llms-orquestador.md`
+
+### D36: Dos nuevos tipos de job Unity definidos
+- **Contexto:** Necesidad de contratos ejecutables para Unity Editor.
+- **Decisión:** `UnityPlacementJob` (lista de acciones MCP: import_prefab, place_object, assign_material, add_trigger) y `UnitySceneAssemblyJob` (ensamblaje completo de escena).
+- **Por qué:** El orquestador recibe un job con acciones atómicas y validaciones — nunca texto libre. Permite auditoría y reintento por acción.
+
+### D37: Trazabilidad obligatoria en todos los artefactos
+- **Contexto:** ¿Cómo mantener trazabilidad lore → asset → implementación?
+- **Decisión:** Todo artefacto lleva 5 campos: `source_model`, `normalized_by`, `source_refs` (capítulos/entidades), `change_log_refs`, `unity_job_refs`.
+- **Por qué:** Permite responder: ¿de qué capítulo salió? ¿qué modelo lo produjo? ¿qué job Unity lo implementó?
+
+### D38: Estructura de directorios aprobada para servidor Debian
+- **Contexto:** ¿Dónde vive el canon, los assets y los jobs?
+- **Decisión:** `~/horror-game/` con subdirectorios: `canon/`, `chapters/`, `chapter_summaries/`, `entities/` (characters, locations, factions, creatures), `scene_specs/`, `branch_graphs/`, `assets/`, `jobs/unity/`, `validation/`, `refs/images/`.
+- **Por qué:** Separación clara por tipo de artefacto. Jobs y validación como carpetas propias para trazabilidad.
+
+### D39: Política de contexto con 7 niveles de prioridad
+- **Contexto:** ¿Qué entra al prompt cuando hay que elegir qué cortar?
+- **Decisión:** Prioridad: (1) tarea activa, (2) restricciones de canon, (3) entidades necesarias, (4) escena/capítulo relevante, (5) cambios pendientes, (6) estilo, (7) contexto opcional.
+- **Reglas duras:** Nunca enviar novela completa, nunca historial bruto de chat. Un prompt = una tarea.
+- **Artefactos de compresión obligatorios:** resumen corto por capítulo, resumen medio por capítulo, ficha por entidad, timeline comprimido, world rules comprimidas, diff por cambio.
 
 ### D28: Estrategia de archivado para conversation_memory.md
 - **Contexto:** El archivo crecerá indefinidamente degradando rendimiento de carga.
