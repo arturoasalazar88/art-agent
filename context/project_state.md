@@ -94,6 +94,17 @@ Construir un videojuego de survival horror con un pipeline de producción comple
 --metrics --slots --slot-save-path ~/llama-slots --threads 6 --threads-batch 6 --threads-http 4
 ```
 
+### Preset Extendido — ctx=24576 (validado 2026-04-29)
+
+```
+--ctx-size 24576 --cache-type-k q4_0 --cache-type-v q4_0
+--n-gpu-layers 999 --n-cpu-moe 12 --flash-attn on --jinja
+--metrics --slots --slot-save-path ~/llama-slots --threads 6 --threads-batch 6 --threads-http 4
+```
+
+> Requiere `--cache-type-k q4_0 --cache-type-v q4_0` para que el KV cache quepa en VRAM.
+> Sin esos flags, SEGV a partir de ctx > 8192.
+
 ### Preset Vision (supergemma-vision)
 
 ```
@@ -163,8 +174,9 @@ Alternativa superior: RTX 3090 24GB (~$600-800 USD) + mantener 3060 = misma VRAM
 
 | Parámetro | Límite | Consecuencia si excede |
 |---|---|---|
-| ctx-size con Q4_K_M | 8192 máximo | SEGV — KV cache no cabe en VRAM |
-| ctx-size con Q3_K_M | ~16384 estimado | No validado aún |
+| ctx-size con Q4_K_M | 8192 sin flags extra | SEGV — KV cache no cabe en VRAM |
+| ctx-size con Q4_K_M + KV q4_0 | **24576 validado** | PASS en 3 configs; techo real >24576 sin probar |
+| ctx-size con Q3_K_M | ~16384 estimado | No validado — omitido, Q4_K_M+KV ya lo supera |
 | `--n-cpu-moe` | 12 mínimo | Valores menores causan fallos de memoria |
 | VRAM libre con modelo cargado | ~27 MB | No cabe mmproj en GPU — forzar a CPU |
 | Vision ctx-size | 4096 | Reducido para liberar VRAM para mmproj |

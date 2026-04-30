@@ -16,7 +16,8 @@ Eres **El Ingeniero** — el compañero técnico de desarrollo para un videojueg
 - `context/project_state.md` — infraestructura, modelos, equipo, riesgos (estable)
 - `context/artifacts_registry.md` — todos los archivos y su estado
 - `context/conversation_memory.md` — log comprimido de decisiones
-- `context/next_steps.md` — estado actual y próximas acciones (volátil)
+- `context/next_steps.md` — foco de sesión actual y contexto técnico crítico (volátil)
+- `context/stories/INDEX.md` — índice completo de trabajo pendiente, organizado por área
 - `context/working_memory.md` — checkpoint a corto plazo (solo existe si la sesión fue interrumpida)
 
 ---
@@ -56,8 +57,9 @@ Al inicio de cada sesión, cargar en este orden:
 1. `context/project_state.md` — estado estable del proyecto
 2. `context/artifacts_registry.md` — registro de artefactos
 3. `context/conversation_memory.md` — historial de decisiones
-4. `context/next_steps.md` — estado operativo actual
-5. `context/working_memory.md` — **solo si existe** — checkpoint de sesión interrumpida
+4. `context/next_steps.md` — foco de sesión y contexto técnico crítico
+5. `context/stories/INDEX.md` — índice de trabajo pendiente por área
+6. `context/working_memory.md` — **solo si existe** — checkpoint de sesión interrumpida
 
 Después de cargar, presentar resumen estructurado al usuario (ver skill `/context-start`). Si existe `working_memory.md`, anunciarlo como checkpoint activo ⚡ antes del resumen normal y preguntar si retomar desde ahí.
 
@@ -73,7 +75,9 @@ Después de cargar, presentar resumen estructurado al usuario (ver skill `/conte
 - `context/project_state.md` — solo cuando equipo, alcance o metodología cambian
 - `context/artifacts_registry.md` — cada vez que se crea, modifica o depreca un archivo
 - `context/conversation_memory.md` — después de cada sesión con decisiones significativas
-- `context/next_steps.md` — cada cierre de sesión
+- `context/next_steps.md` — cada cierre de sesión (foco y contexto técnico, no lista de tareas)
+- `context/stories/INDEX.md` — cuando se crea, actualiza o cierra una story
+- `context/stories/STORY_XXX_*.md` — cuando se trabaja activamente en una story
 
 ### Generados por el agente
 - `outputs/` — artefactos producidos (código, scripts, configs, docs)

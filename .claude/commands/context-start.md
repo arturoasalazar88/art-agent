@@ -6,7 +6,8 @@ Lee los archivos de memoria en este orden:
 2. `context/artifacts_registry.md`
 3. `context/conversation_memory.md`
 4. `context/next_steps.md`
-5. `context/working_memory.md` — **solo si existe**. Si existe, incluirlo en el resumen como sección especial ⚡.
+5. `context/stories/INDEX.md`
+6. `context/working_memory.md` — **solo si existe**. Si existe, incluirlo en el resumen como sección especial ⚡.
 
 Después de leerlos, presenta este resumen estructurado al usuario:
 
@@ -26,13 +27,16 @@ Después de leerlos, presenta este resumen estructurado al usuario:
 - Las 3–5 decisiones más recientes de `conversation_memory.md`
 - Cualquier decisión que tenga impacto en el trabajo de hoy
 
-### Pendientes (🔴 🟡 ⬜)
-- 🔴 Urgentes de `next_steps.md`
-- 🟡 En progreso
-- ⬜ Siguientes en cola
+### Trabajo pendiente
+Mostrar el INDEX.md completo agrupado por área. Para cada story mostrar: ID, estado y título.
+Resaltar visualmente:
+- 🟡 En progreso — primero
+- 🔬 En research — segundo
+- 🔴 Bloqueadas — tercero
+- ⬜ Pendientes de mayor prioridad — cuarto (no listar todas, solo las de mayor prioridad por área)
 
 ### Último artefacto
 - Archivo más reciente de `artifacts_registry.md` con su estado
 
 ### ¿En qué trabajamos hoy?
-Pregunta al usuario qué quiere abordar en esta sesión.
+Pregunta al usuario qué quiere abordar en esta sesión. Si hay stories 🟡 activas, sugerirlas como punto de partida.

@@ -22,13 +22,18 @@ Lista:
 - problemas resueltos
 - descubrimientos tecnicos
 
-### Paso 2 - Actualizar `context/next_steps.md`
+### Paso 2 - Actualizar `context/stories/INDEX.md` y `context/next_steps.md`
 
-- mueve items completados
-- agrega nuevos pendientes surgidos en la sesion
+**INDEX.md** (fuente de verdad de tareas):
+- actualiza estado de stories trabajadas en esta sesion (⬜→🟡, 🟡→✅, etc.)
+- agrega nuevas stories si surgieron en la sesion con ID siguiente en secuencia
+- si una story se completo, cambiarla a ✅ (no borrarla)
+
+**next_steps.md** (solo contexto de sesion):
 - actualiza fase actual si cambio
-- agrega contexto tecnico util para la proxima sesion
-- agrega preguntas de arranque para la siguiente sesion si aplica
+- actualiza lista de "completado en ultima sesion" (ultimos 5 items max)
+- actualiza contexto tecnico critico si hay nuevas restricciones
+- actualiza preguntas de arranque para la proxima sesion
 
 ### Paso 3 - Actualizar `context/conversation_memory.md`
 

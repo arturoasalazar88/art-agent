@@ -1,49 +1,65 @@
 # Working Memory — Checkpoint
-> Generado: 2026-04-28T~sesión-7
-> Sesión: 2026-04-28
-> Contexto aproximado consumido: ~60%
+> Generado: 2026-04-30
+> Sesión: 10
 
 ## Qué estábamos haciendo
 
-Creamos `outputs/workflow_map.md` — documentación detallada de todos los workflows creativos y de generación de assets con todos los actores del sistema. El objetivo declarado por Arturo es que este documento sea el insumo base para diseñar una **plataforma de orquestación** que automatice estos procesos. Los MCPs fueron explícitamente excluidos del scope por ahora.
+Sesión de validación completa de Ornstein. Se completaron STORY_001 (4 bloques A/B/C/D) y STORY_020 (agent harness v1 + W2 canonical fix). Todos los artefactos guardados y formalizados. Usuario hizo /context-start + /context-checkpoint para ordenar estado antes de continuar con STORY_016.
 
 ## Hilo de conversación reciente
 
-1. `/context-start` — carga normal, no había working_memory previo
-2. Arturo pidió documentación detallada de workflows con todos los actores, registrada en contexto
-3. Leímos `handoff-workflows-detallados-llms-orquestador.md`, `spec-workflow-creativo-orquestador-memoria.md`, `mcp-specs-survival-horror.md`
-4. Consulta al advisor — recomendó enfocarse en los actores que los inputs NO cubrían (Arturo, El Ingeniero, ComfyUI, switch-model.sh, filesystem, Unity)
-5. Arturo interrumpió para aclarar: **excluir MCP del scope** — este documento es un paso previo a un proyecto nuevo (la plataforma)
-6. Escribimos `outputs/workflow_map.md` con 14 secciones, 9 workflows, matriz actor×workflow, 16 contratos, 10 gaps
-7. Actualizamos `artifacts_registry.md`, `conversation_memory.md` (D40), `CLAUDE.md` (/docs.policy)
-8. Arturo preguntó qué significa "paquete contextual mínimo" → explicamos que es el prompt manual que Arturo construye hoy en Open WebUI, y que la plataforma debería automatizarlo
+- Continuamos de sesión anterior (context compactado) — harness PID 10457 estaba corriendo
+- Harness terminó: 14/15 tests pasando, W2 único fallo (avg=2.4, pass@5=60%)
+- Creamos `context/agent_harness.md` con reglas de producción por rol
+- Actualizamos STORY_001 y STORY_020 a ✅, INDEX.md y artifacts_registry.md
+- Formalizamos D47–D50 en conversation_memory.md
+- Discutimos mejora W2 — Perplexity sugirió Canonical State Pattern
+- Implementamos `~/w2_canonical.py`: 5/5 score=4, pass@5=100%
+- Integramos patrón canonical en `~/story001_harness.py` (harness v2)
+- Creamos `context/validation_results_complete.md` — referencia técnica completa run-por-run
+- Formalizamos D51 (Canonical State Pattern) en conversation_memory.md
+- Discutimos métricas finales: ctx=24576, 25 tok/s, weighted avg=4.0/4.0
+- Discutimos readiness — STORY_001 desbloquea STORY_016, STORY_007, STORY_002, STORY_019
+- Usuario preguntó si existe archivo de memoria con todos los resultados → creado
 
-## Decisiones tomadas en esta sesión (no formalizadas aún)
+## Decisiones tomadas en esta sesión (ya formalizadas)
 
-- **D40** — Ya formalizada en `conversation_memory.md`: creación de `workflow_map.md` como fuente de verdad para plataforma
-- **Intención de plataforma** — Arturo confirmó que el próximo proyecto será una plataforma para organizar y orquestar todos los procesos del pipeline. Scope aún no definido. No formalizado como decisión aún porque el alcance no está discutido.
+Todas en conversation_memory.md — **no hay decisiones pendientes**:
+- D47: Q3_K_M omitido permanentemente
+- D48: Suite de 4 bloques (A/B/C/D)
+- D49: Thinking OFF para todos los roles agénticos
+- D50: Harness validado — weighted avg 4.0/4.0, 15/15 tests
+- D51: Canonical State Pattern — harness es fuente de verdad del estado de entidades
 
 ## Trabajo en vuelo
 
-- Archivo: `outputs/workflow_map.md` — estado: ✅ completo, entregado, validado por Arturo
-- Archivo: `context/artifacts_registry.md` — estado: ✅ actualizado
-- Archivo: `context/conversation_memory.md` — estado: ✅ D40 registrado
-- Archivo: `CLAUDE.md` — estado: ✅ `workflow_map.md` agregado a /docs.policy
+- Ningún proceso corriendo en servidor
+- Ningún archivo en edición activa
+- `context/next_steps.md` está desactualizado — referencias a ctx=8192 y STORY_001 como bloqueante ya no son válidas. Actualizar en /context-close.
 
 ## Contexto técnico inmediato
 
-- Servidor Debian: `asalazar@10.1.0.105` — estado desconocido (no se verificó en esta sesión)
-- `outputs/workflow_map.md` tiene 14 secciones, ~700 líneas
-- La sección 13 (Gaps) tiene 10 puntos de fricción — será el input principal para la plataforma
-- MCP server (puerto 8189) sigue pendiente de implementación — excluido del scope de esta sesión
+- Servidor: `asalazar@10.1.0.105` — SSH key auth, sin contraseña
+- Ornstein: único modelo en disco — `~/models/gemma4/Ornstein-26B-A4B-it-Q4_K_M.gguf`
+- SuperGemma y TrevorJS: eliminados de disco — pendiente re-descarga para STORY_019
+- Config producción: `--ctx-size 24576 --cache-type-k q4_0 --cache-type-v q4_0 --n-gpu-layers 999 --n-cpu-moe 12 --flash-attn on --jinja --threads 6 --threads-batch 6 --threads-http 4 --chat-template-kwargs '{"enable_thinking":false}'`
+- Puerto 8012 libre (servidor detenido al final de los tests)
+- Disco: ~84G libres
+- Harness v2: `~/story001_harness.py` — production ready, canonical state integrado
+- Resultados completos: `~/story001_results/`, `~/story001_harness_results/`, `~/w2_canonical_results.json`
 
 ## Próximo paso exacto
 
-Arturo debe decidir: ¿arrancamos la discusión de arquitectura de la plataforma, o hay algo en `workflow_map.md` que requiere ajuste primero?
+Iniciar **STORY_016** — Diseño de agentes especializados + memoria atómica.
+
+Inputs disponibles para el diseño:
+- `context/agent_harness.md` — reglas por rol, system prompts, canonical state pattern
+- `context/validation_results_complete.md` — scores y timings reales por test
+- `outputs/workflow_map.md` — mapa de actores y contratos (cargar on-demand)
+- D41 en conversation_memory.md — arquitectura de bloques fijos + compiler
 
 ## Preguntas abiertas
 
-- ¿Qué forma tomará la plataforma? (app web, CLI, agente, combinación)
-- ¿La plataforma reemplaza o envuelve los MCPs eventuales?
-- ¿Cuál es el primer gap que la plataforma debe resolver? (candidato obvio: ensamblaje automático del paquete contextual)
-- ¿Hay workflows en `workflow_map.md` que estén incompletos o mal entendidos?
+- ¿Cuándo re-descargar SuperGemma y TrevorJS para STORY_019?
+- ¿Arrancamos STORY_016 o hay otra prioridad (STORY_002 MCP, STORY_003 estructura horror-game/)?
+- ¿Actualizamos next_steps.md ahora o esperamos al /context-close?

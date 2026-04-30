@@ -50,9 +50,11 @@ Actualiza `context/artifacts_registry.md` con:
 
 Actualiza `context/project_state.md` solo si cambio equipo, infraestructura, metodologia, riesgos o glosario.
 
-#### Si es un cambio de estado operativo
+#### Si es un cambio de estado operativo o de tarea
 
-Actualiza `context/next_steps.md` moviendo items entre estados o agregando nuevos pendientes.
+Actualiza `context/stories/INDEX.md` cambiando el estado de la story afectada (⬜→🟡, 🟡→✅, etc.) o agregando una nueva story con el siguiente ID en secuencia.
+
+Actualiza `context/next_steps.md` solo si cambio el foco de sesion o hay nuevo contexto tecnico critico.
 
 ### Paso 3 - Confirmar
 

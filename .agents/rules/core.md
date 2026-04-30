@@ -32,7 +32,8 @@ En OpenCode o cualquier runtime que no precargue `CLAUDE.md`, la primera accion 
 3. `context/artifacts_registry.md`
 4. `context/conversation_memory.md`
 5. `context/next_steps.md`
-6. `context/working_memory.md` solo si existe
+6. `context/stories/INDEX.md` — indice de trabajo pendiente organizado por area
+7. `context/working_memory.md` solo si existe
 
 ## Cierre obligatorio
 

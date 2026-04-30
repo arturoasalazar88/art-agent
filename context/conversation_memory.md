@@ -1,6 +1,6 @@
 # Memoria de Conversación — Log de Decisiones
 
-> Última actualización: 2026-04-28 (sesión 7 — D40)
+> Última actualización: 2026-04-29 (sesión 8 — D45)
 > Formato: Cronológico, comprimido. Decisiones y su WHY, no transcripción.
 > Trigger de actualización: Después de cada sesión donde se toma una decisión significativa.
 
@@ -260,6 +260,92 @@
 - **Decisión:** Crear `outputs/workflow_map.md` — documento de referencia activa con 9 workflows detallados, todos los actores, matriz actor×workflow, catálogo de 16 contratos de handoff, sistema de memoria, y tabla de gaps identificados.
 - **Por qué:** Este documento es el insumo principal para diseñar la plataforma que orquestará todos los procesos. No se auto-carga en `/memory.load` para no inflar cada apertura de sesión — se consulta on-demand cuando se trabaje en diseño de plataforma.
 - **Clasificado en CLAUDE.md como:** Referencia activa on-demand en `/docs.policy`.
+
+---
+
+## 2026-04-29 — Sesión 8: Arquitectura de Agentes + Sistema de Stories
+
+### D41: Arquitectura de memoria de agentes especializados — bloques fijos + compiler
+- **Contexto:** Research de Perplexity (inputs/obsidian-context-engineering-research.md) evaluó sistemas de memoria para agentes locales con ventana de 8192 tokens.
+- **Opciones:** Markdown libre, Obsidian directo al modelo, bloques fijos compilados, RAG (descartado por complejidad).
+- **Decisión:** Arquitectura de dos capas — fuente humana editable (Obsidian o Markdown con frontmatter) + runtime artifact compilado con bloques fijos: IDENTITY, OPERATING_RULES, CANON, ACTIVE_GOALS, OPEN_LOOPS, RECENT_DECISIONS, EXAMPLES. Cada bloque con presupuesto propio de tokens.
+- **Por qué:** Separa mantenibilidad (vault rico) de economía de tokens (artifact acotado). Letta confirma el patrón con sus "memory blocks". El compiler es el paso crítico — sin él el vault es demasiado verboso para cargarse directo.
+- **Descartado:** RAG — añade complejidad innecesaria para el scope actual; Obsidian directo al modelo — demasiado verboso.
+
+### D42: El Ingeniero como Unity assembler — dos modos de memoria
+- **Contexto:** Arturo quiere que El Ingeniero ejecute también el rol de Unity assembler para evitar un agente extra, pero sin riesgo de censura por contenido narrativo.
+- **Opciones:** Agente Unity separado, El Ingeniero en modo dual, agente Unity que solo ve blueprints.
+- **Decisión:** El Ingeniero opera en dos modos: (1) modo sesión — memoria completa del proyecto; (2) modo ejecución Unity — solo memoria técnica mínima + job contract normalizado. Nunca se carga historia, lore ni assets/ en modo ejecución.
+- **Por qué:** Ornstein ya es el firewall semántico. El Ingeniero recibe contratos normalizados (IDs, posiciones, flags), no contenido narrativo. La plataforma enforcea esto pasando solo el job file + memoria técnica al invocarlo en modo ejecución.
+
+### D43: Blueprint Compiler como script determinístico, no LLM
+- **Contexto:** Necesidad de transformar InteractiveSceneSpec (Ornstein) en SceneBlueprint puramente técnico para El Ingeniero.
+- **Opciones:** Ornstein en modo blueprint (mismo modelo, segunda pasada), agente LLM dedicado, script Python determinístico.
+- **Decisión:** Script Python determinístico (~100 líneas). Si InteractiveSceneSpec es JSON estructurado, la transformación es mecánica: conservar IDs/posiciones/valores, eliminar todos los campos de descripción.
+- **Por qué:** Cero tokens consumidos, cero riesgo de censura, transformación predecible y auditable. Un LLM adicional solo añade latencia y punto de falla para trabajo que no requiere razonamiento.
+
+### D44: Sistema de stories para tracking de trabajo pendiente
+- **Contexto:** next_steps.md mezclaba contexto de sesión con listas de tareas, crecía sin estructura y no era navegable entre agentes.
+- **Opciones:** Mantener next_steps.md expandido, Jira/Linear externo, sistema de archivos Markdown con índice.
+- **Decisión:** context/stories/INDEX.md como índice maestro + archivos STORY_XXX_nombre.md individuales. INDEX.md cargado en /memory.load. next_steps.md reducido a foco de sesión y contexto técnico crítico.
+- **Por qué:** File-based, portable entre Claude Code / OpenCode / Codex. El índice es compacto (~400 tokens). Los archivos individuales se cargan on-demand. Paridad garantizada via .agents/.
+
+### D45: Opciones de ctx-size expandido — validación pendiente (STORY_001 Fase 1)
+- **Contexto:** Discusión sobre si RAM libre podía expandir el contexto. Conclusión: RAM no ayuda — el KV cache vive en VRAM.
+- **Opciones identificadas:** Q3_K_M (~16384 estimado), Q4_K_M + KV cache cuantizado (--cache-type-k q4_0 --cache-type-v q4_0, ~16384–24000).
+- **Decisión:** Validar ambas opciones en servidor antes de definir presupuestos de tokens para agentes especializados. Documentado en STORY_001 Fase 1.
+- **Por qué:** Los presupuestos de tokens de los agentes especializados dependen del ctx-size real disponible. No diseñar para 8192 si podemos tener 16384+.
+
+---
+
+## 2026-04-29 — Sesión 9: STORY_001 Fase 1 — Validación ctx expandido
+
+### D46: Q4_K_M + KV q4_0 estable hasta ctx=24576 — techo de producción confirmado
+- **Contexto:** STORY_001 Fase 1 — determinar el ctx-size máximo estable en RTX 3060 12GB con Ornstein Q4_K_M.
+- **Test ejecutado:** Script automatizado, 3 llamadas consecutivas con prompt al 79.2% del ctx declarado, sin reparación ni re-intentos. Temperature=0.
+- **Resultados:**
+  - Q4_K_M + KV q4_0, ctx=16384 → **PASS** (12974 tokens reales, calls: 21.3s / 1.9s / 1.9s)
+  - Q4_K_M + KV q4_0, ctx=20480 → **PASS** (16220 tokens reales, calls: 26.2s / 2.0s / 2.0s)
+  - Q4_K_M + KV q4_0, ctx=24576 → **PASS** (19465 tokens reales, calls: 31.4s / 2.0s / 2.0s)
+- **Decisión:** Límite de producción provisional = **ctx=24576** con `--cache-type-k q4_0 --cache-type-v q4_0`. El techo real puede ser mayor (32768 sin probar).
+- **Observación de timing:** Primera llamada lenta (prefill), calls 2–3 casi instantáneas (~2s) por reutilización del KV cache. Crítico para diseño de multi-turn agéntico.
+- **Por qué importa:** Los presupuestos de tokens de agentes especializados pasan de 8192 → 24576. El diseño de STORY_016 puede asumir ventanas 3× más grandes. Q3_K_M se puede omitir (Q4_K_M+KV domina en calidad y ya alcanza ctx mayor).
+- **Pendiente:** Decidir si probar ctx=32768 para encontrar techo real, o proceder con 24576 como límite conservador.
+
+### D47: Q3_K_M omitido del plan de validación
+- **Contexto:** STORY_001 evaluó si valía descargar Q3_K_M para ganar ctx-size.
+- **Decisión:** Omitido permanentemente.
+- **Por qué:** Q4_K_M + KV q4_0 supera los ctx-sizes estimados de Q3_K_M con mejor calidad. No hay tradeoff favorable.
+
+### D48: Suite de validación expandida a 4 bloques
+- **Contexto:** El test de estabilidad original (Fase 1) validaba solo si el modelo crasheaba. No medía usabilidad (tok/s), ni calidad agéntica real.
+- **Decisión:** Suite expandida a Bloque A (performance), B (estabilidad extendida), C (14 tests agénticos), D (thinking ON vs OFF por rol).
+- **Por qué:** Los presupuestos de tokens y el diseño de agentes dependen de conocer tok/s, thinking budget y confiabilidad por tipo de tarea. Medir primero.
+
+### D49: Thinking OFF para todos los roles agénticos — validado en producción
+- **Contexto:** STORY_001 Bloque C corrió los 14 tests con thinking ON. Varios tests críticos fallaron (N1=0, W4=0, W5=0, V2=0) por output en prosa/markdown en lugar de JSON. STORY_020 aplicó el harness con thinking OFF.
+- **Evidencia:** N1: 0→4, W4: 0→4 al apagar thinking. Thinking causa goal-completion bias en tareas estructuradas.
+- **Decisión:** Thinking OFF por defecto para todos los roles agénticos (normalizer, writer, visual_spec). Regla registrada en `context/agent_harness.md`.
+- **Por qué:** El thinking mode mejora razonamiento libre pero introduce sesgos en tareas con output estructurado. Para agentes que producen JSON, OFF es siempre mejor.
+
+### D50: Harness de producción validado — weighted avg 2.25→3.92 (+74%)
+- **Contexto:** STORY_001 Bloque C sin harness tenía weighted avg=2.25, 3 ceros en safety-critical. STORY_020 implementó harness (thinking OFF, system prompts explícitos, extractor de JSON robusto, retry de formato, validators corregidos).
+- **Resultados:** 14/15 tests pasan umbral ≥3.5. Todos los safety-critical (7/7) al 100% pass@5. Weighted avg=3.92. Único fallo: W2 (canon multi-turno, avg=2.4, pass@5=60%) — limitación real del modelo, no de infraestructura.
+- **Decisión:** Harness aprobado para producción. Reglas publicadas en `context/agent_harness.md` como input para STORY_007 (system prompts) y STORY_016 (diseño de agentes). W2 documentado como limitación conocida — mitigación: incluir estado explícito de inventario en cada turno del prompt en producción.
+- **Por qué:** Los umbrales de producción se cumplen: sin ceros en safety-critical, weighted avg ≥3.5, pass@5 ≥80% excepto W2 (no safety-critical).
+
+### D51: Canonical State Pattern — solución a multi-turn entity state tracking
+- **Contexto:** W2 fallaba 2/5 runs con `has_radio=true` a pesar de que el turno 2 decía explícitamente que Elena perdía la radio. El harness v1 (thinking OFF + system prompt) mejoró de 1.0 a 2.4 pero no resolvió el fallo.
+- **Diagnóstico:** El modelo usa el historial de conversación como contexto narrativo, no como fuente de verdad de estado. Con temperature=0 el resultado es no-determinístico porque el modelo "reconstruye" el estado en lugar de propagarlo.
+- **Solución:** Canonical State Pattern — 4 componentes en el harness (no en el modelo):
+  1. **Estado canónico externo** — dict en el harness, inicializado con estado inicial de la conversación.
+  2. **Reducer determinístico** — después de cada turno, el harness aplica los eventos al estado. Si el prompt especifica un evento explícitamente, el reducer lo aplica independientemente de si el modelo lo reflejó.
+  3. **CANONICAL_STATE injection** — al construir el prompt del turno siguiente, se inyecta un bloque `CANONICAL_STATE` separado del historial. El system prompt dice que ese bloque tiene prioridad sobre el historial.
+  4. **Post-generation patcher** — antes de aceptar el output, el harness sobreescribe `entity_states[]` con el estado canónico. El modelo nunca tiene autoridad final.
+- **Resultado:** W2: avg 2.4→4.0, pass@5 60%→100% en 5/5 runs. Weighted avg total: 3.92→4.0.
+- **Observación del run:** en los 5 runs el modelo propuso correctamente en T2 Y coincidió con canonical en T3. La inyección del bloque ancló el output sin necesitar el patcher. El patcher es red de seguridad, no el mecanismo principal.
+- **Regla derivada:** Historial de conversación = contexto narrativo. Estado de entidades = canonical externo inyectado. Para cualquier campo cuyo valor correcto es determinístico (inventario, posición, flags de canon), el harness es la fuente de verdad.
+- **Fuente:** `context/agent_harness.md` — sección "Canonical State Pattern".
 
 ### D28: Estrategia de archivado para conversation_memory.md
 - **Contexto:** El archivo crecerá indefinidamente degradando rendimiento de carga.

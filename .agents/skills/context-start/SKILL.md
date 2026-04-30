@@ -30,7 +30,8 @@ Lee estos archivos en este orden:
 2. `context/artifacts_registry.md`
 3. `context/conversation_memory.md`
 4. `context/next_steps.md`
-5. `context/working_memory.md` solo si existe
+5. `context/stories/INDEX.md`
+6. `context/working_memory.md` solo si existe
 
 ### Paso 3 - Presentar resumen de apertura
 
@@ -57,10 +58,10 @@ Retomamos desde el checkpoint?
 - las 3-5 decisiones mas recientes de `context/conversation_memory.md`
 - incluir cualquier decision con impacto directo en la tarea actual
 
-**Pendientes:**
-- lista urgentes de `context/next_steps.md`
-- lista items en progreso
-- lista la cola siguiente
+**Trabajo pendiente:**
+- mostrar `context/stories/INDEX.md` completo agrupado por area
+- priorizar al mostrar: 🟡 en progreso → 🔬 research → 🔴 bloqueadas → ⬜ pendientes de mayor prioridad
+- `context/next_steps.md` solo para contexto tecnico critico de sesion, no para lista de tareas
 
 **Ultimo artefacto:**
 - reporta el archivo mas reciente o relevante en `context/artifacts_registry.md`

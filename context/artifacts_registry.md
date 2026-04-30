@@ -1,6 +1,6 @@
 # Registro de Artefactos
 
-> Última actualización: 2026-04-28 (sesión 7)
+> Última actualización: 2026-04-29 (sesión 8)
 > Trigger de actualización: Cada vez que se crea, modifica o depreca un archivo.
 
 ---
@@ -10,11 +10,16 @@
 | Ruta | Estado | Fecha | Descripción |
 |---|---|---|---|
 | `context/session_log.md` | ✅ Activo | 2026-04-26 | Log de sesiones — una línea por sesión, append only |
-| `CLAUDE.md` | ✅ Activo | 2026-04-24 | Identidad del agente — rol, protocolos, memory.load, docs.policy |
+| `CLAUDE.md` | ✅ Activo | 2026-04-29 | Identidad del agente — rol, protocolos, memory.load, docs.policy |
 | `context/project_state.md` | ✅ Activo | 2026-04-24 | Estado estable del proyecto — equipo, infra, modelos, riesgos, glosario |
 | `context/artifacts_registry.md` | ✅ Activo | 2026-04-24 | Este archivo — registro de todos los artefactos |
-| `context/conversation_memory.md` | ✅ Activo | 2026-04-28 | Log comprimido de 40 decisiones (D01–D40) |
-| `context/next_steps.md` | ✅ Activo | 2026-04-24 | Estado operativo — completado, pendiente, siguiente |
+| `context/conversation_memory.md` | ✅ Activo | 2026-04-29 | Log comprimido de 50 decisiones (D01–D50) |
+| `context/next_steps.md` | ✅ Activo | 2026-04-29 | Foco de sesión y contexto técnico crítico (listas de tareas → INDEX.md) |
+| `context/stories/INDEX.md` | ✅ Activo | 2026-04-29 | Índice maestro de trabajo pendiente — 18 stories organizadas en 5 áreas |
+| `context/stories/STORY_001_validacion_modelos.md` | ✅ Completado | 2026-04-29 | Validación de modelos: ctx=24576 estable, 14 tests agénticos, harness weighted avg 3.92/4.0 |
+| `context/stories/STORY_020_agent_harness.md` | ✅ Completado | 2026-04-29 | Agent harness: reglas por rol, thinking OFF, system prompts, validators corregidos |
+| `context/agent_harness.md` | ✅ Activo | 2026-04-29 | Reglas de producción del harness — fuente de verdad para STORY_007 y STORY_016 |
+| `context/validation_results_complete.md` | ✅ Activo | 2026-04-30 | Resultados milimétricos completos — todos los bloques A/B/C/D + harness v1/v2, run por run, diagnóstico de cada failure mode. Referencia técnica para proyectos futuros. |
 | `SPEC_context_engineering_agent.md` | ✅ Activo | 2026-04-24 | Spec del patrón context engineering — referencia, no modificar |
 
 ---
@@ -24,7 +29,7 @@
 | Ruta | Estado | Fecha | Descripción |
 |---|---|---|---|
 | `.claude/commands/context-checkpoint.md` | ✅ Activo | 2026-04-26 | Skill de checkpoint — memoria a corto plazo para compactación o ruptura de sesión |
-| `.claude/commands/context-start.md` | ✅ Activo | 2026-04-24 | Skill de apertura de sesión — carga memoria y presenta resumen |
+| `.claude/commands/context-start.md` | ✅ Activo | 2026-04-29 | Skill de apertura de sesión — carga memoria + INDEX.md y presenta resumen |
 | `.claude/commands/context-close.md` | ✅ Activo | 2026-04-24 | Skill de cierre de sesión — actualiza memoria y confirma |
 | `.claude/commands/context-save.md` | ✅ Activo | 2026-04-24 | Skill de guardado on-demand — persiste decisiones o chat a memoria |
 
@@ -63,6 +68,11 @@
 | `/etc/systemd/system/llama-vision.service` | ✅ Activo | Servicio systemd para Vision |
 | `/etc/systemd/system/comfyui.service` | ✅ Activo | Servicio systemd para ComfyUI (no auto-start) |
 | `~/switch-model.sh` | ✅ Activo | Script switch de 5 modos |
+| `~/story001_harness.py` | ✅ Activo | Harness completo — 14 tests, 5 runs, comparación vs baseline |
+| `~/story001_harness_results/harness_14tests.json` | ✅ Activo | Scores finales con harness aplicado |
+| `~/story001_harness_results/comparison.md` | ✅ Activo | Tabla antes vs después por test |
+| `~/story001_harness_results/production_rules.json` | ✅ Activo | Reglas validadas por rol — input para STORY_007 y STORY_016 |
+| `~/story019_suite.py` | ✅ Activo | Suite validación SuperGemma/TrevorJS — detecta modelos faltantes |
 | `~/ComfyUI/workflows/pony_horror.json` | ✅ Activo | Workflow base — Pony + VAE, sin LoRAs |
 | `~/ComfyUI/workflows/pony_horror_lora.json` | ✅ Activo | Workflow completo — Pony + VAE + 3 LoRAs |
 
