@@ -80,6 +80,7 @@ Después de cargar, presentar resumen estructurado al usuario (ver skill `/conte
 
 ### Referencias activas (read-only, fuente de verdad para implementación)
 - `inputs/mcp-specs-survival-horror.md` — specs técnicas del MCP server. NO está ingestado en context/ — es la fuente viva para la implementación. Consultar directamente al trabajar en el MCP.
+- `outputs/workflow_map.md` — mapa completo de workflows creativos y de generación de assets con todos los actores. Fuente de verdad para diseño de plataforma de orquestación. Consultar on-demand, NO auto-cargar en `/memory.load`.
 
 ### Históricos ingestados
 Los siguientes archivos fueron la fuente original de la memoria del agente. Su contenido está completamente ingestado en `context/`. Se conservan como referencia pero NO son la fuente de verdad actual:

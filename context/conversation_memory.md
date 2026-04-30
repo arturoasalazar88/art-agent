@@ -1,6 +1,6 @@
 # Memoria de Conversación — Log de Decisiones
 
-> Última actualización: 2026-04-28
+> Última actualización: 2026-04-28 (sesión 7 — D40)
 > Formato: Cronológico, comprimido. Decisiones y su WHY, no transcripción.
 > Trigger de actualización: Después de cada sesión donde se toma una decisión significativa.
 
@@ -250,6 +250,16 @@
 - **Decisión:** Prioridad: (1) tarea activa, (2) restricciones de canon, (3) entidades necesarias, (4) escena/capítulo relevante, (5) cambios pendientes, (6) estilo, (7) contexto opcional.
 - **Reglas duras:** Nunca enviar novela completa, nunca historial bruto de chat. Un prompt = una tarea.
 - **Artefactos de compresión obligatorios:** resumen corto por capítulo, resumen medio por capítulo, ficha por entidad, timeline comprimido, world rules comprimidas, diff por cambio.
+
+---
+
+## 2026-04-28 — Sesión 7: Mapa de Workflows
+
+### D40: Creación de workflow_map.md como fuente de verdad para la plataforma
+- **Contexto:** Los inputs existentes (`handoff-workflows-detallados-llms-orquestador.md`, `spec-workflow-creativo-orquestador-memoria.md`) cubren los workflows desde la perspectiva LLM pero no mapean todos los actores del sistema (Arturo, El Ingeniero, ComfyUI, switch-model.sh, filesystem). Este gap bloquea el diseño de una plataforma de orquestación.
+- **Decisión:** Crear `outputs/workflow_map.md` — documento de referencia activa con 9 workflows detallados, todos los actores, matriz actor×workflow, catálogo de 16 contratos de handoff, sistema de memoria, y tabla de gaps identificados.
+- **Por qué:** Este documento es el insumo principal para diseñar la plataforma que orquestará todos los procesos. No se auto-carga en `/memory.load` para no inflar cada apertura de sesión — se consulta on-demand cuando se trabaje en diseño de plataforma.
+- **Clasificado en CLAUDE.md como:** Referencia activa on-demand en `/docs.policy`.
 
 ### D28: Estrategia de archivado para conversation_memory.md
 - **Contexto:** El archivo crecerá indefinidamente degradando rendimiento de carga.

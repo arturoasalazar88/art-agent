@@ -1,6 +1,6 @@
 # Registro de Artefactos
 
-> Última actualización: 2026-04-28
+> Última actualización: 2026-04-28 (sesión 7)
 > Trigger de actualización: Cada vez que se crea, modifica o depreca un archivo.
 
 ---
@@ -13,7 +13,7 @@
 | `CLAUDE.md` | ✅ Activo | 2026-04-24 | Identidad del agente — rol, protocolos, memory.load, docs.policy |
 | `context/project_state.md` | ✅ Activo | 2026-04-24 | Estado estable del proyecto — equipo, infra, modelos, riesgos, glosario |
 | `context/artifacts_registry.md` | ✅ Activo | 2026-04-24 | Este archivo — registro de todos los artefactos |
-| `context/conversation_memory.md` | ✅ Activo | 2026-04-26 | Log comprimido de 28 decisiones (D01–D28) |
+| `context/conversation_memory.md` | ✅ Activo | 2026-04-28 | Log comprimido de 40 decisiones (D01–D40) |
 | `context/next_steps.md` | ✅ Activo | 2026-04-24 | Estado operativo — completado, pendiente, siguiente |
 | `SPEC_context_engineering_agent.md` | ✅ Activo | 2026-04-24 | Spec del patrón context engineering — referencia, no modificar |
 
@@ -35,6 +35,7 @@
 | Ruta | Estado | Fecha | Descripción |
 |---|---|---|---|
 | `outputs/` | ✅ Activo | 2026-04-24 | Directorio para artefactos producidos — código, scripts, configs, docs |
+| `outputs/workflow_map.md` | ✅ Activo | 2026-04-28 | Mapa completo de workflows creativos y de generación de assets. 9 workflows, todos los actores, matriz actor×workflow, catálogo de 16 contratos de handoff, gaps identificados. Fuente de verdad para diseño de plataforma. |
 
 ---
 
