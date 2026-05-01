@@ -1,6 +1,6 @@
 # Memoria de Conversación — Log de Decisiones
 
-> Última actualización: 2026-04-30 (sesión 14 — D62)
+> Última actualización: 2026-04-30 (sesión 14 — D65)
 > Formato: Cronológico, comprimido. Decisiones y su WHY, no transcripción.
 > Trigger de actualización: Después de cada sesión donde se toma una decisión significativa.
 
@@ -429,3 +429,28 @@
 - **Resultados:** 4/4 PASS. SG-1: criatura "El Amalgama de la Veta", 601 palabras, español coherente. TJ-1: brief artista 3D completo con LOD counts y vertex shader. SG-2: escena + dilema integrando lore con precisión. TJ-2: segunda criatura (ENTITY_043) con ADN estético compartido y distinción de rol.
 - **Decisión:** Ambos modelos aprobados para producción. Stack completo validado: Ornstein + SuperGemma + TrevorJS, todos a ctx=24576.
 - **Por qué importa:** El pipeline de 5 fases puede ejecutarse con el hardware actual. No se necesita upgrade para iniciar producción creativa.
+
+### D63: Ornstein re-validado con tests JSON cualitativos — mismo approach que creativos
+- **Contexto:** Los tests originales de STORY_001/020 usaban scorers regex y thinking ON (error). El usuario no confiaba en esos resultados. Se repitió el proceso de diseño de tests con Perplexity, esta vez enfocado en el rol real de Ornstein: transformador técnico que produce JSON.
+- **Opciones:** Reutilizar suite STORY_001 corregida, diseñar tests nuevos desde cero, usar Perplexity para diseñar.
+- **Decisión:** 4 tests nuevos enfocados en JSON — T1 (AssetSpec3D), T2 (extracción de entidades), T3 (InteractiveSceneSpec), T4 (estado multi-turno). Criterios: JSON.parse() + revisión visual de valores en 30 segundos.
+- **Por qué:** Los tests originales medían "¿siguió el formato exacto?" con regex. Los nuevos miden "¿produce JSON correcto y usable para Unity MCP?" — que es la pregunta real.
+
+### D64: Ornstein production-ready a ctx=24576 con thinking OFF — 4/4 PASS
+- **Contexto:** Ejecución de los 4 tests de validación con orn_runner.py, thinking OFF, temperature=0.
+- **Resultados:**
+  - T1 AssetSpec3D: 7/7 ✅ — JSON correcto, height_m=2.6, limb_count=6, staccato en animation_hooks
+  - T2 Extracción entidades: 8/8 ✅ — 5 entidades, has_radio=false (boolean), sin duplicados, dead-radio como entidad separada (bonus)
+  - T3 InteractiveSceneSpec: 7/7 ✅ — 3 choices, requires_flag correcto, vault_antechamber_visited, trigger Weaver spawn
+  - T4 Multi-turno: 5/6 ✅ — has_radio y weapon preservados, former_role agregado; last_updated_turn retornó 2 en lugar de 3
+- **Fallo T4 diagnosticado:** El modelo interpreta last_updated_turn semánticamente (solo incrementa si cambia algo). Mitigado por Canonical State Pattern — el harness controla campos determinísticos externamente.
+- **Velocidad:** 3.6–11.4s por llamada — 10× más rápido que creativos. Apropiado para pipelines encadenados.
+
+### D65: Stack completo documentado — configs de producción para los 3 modelos
+- **Contexto:** Tras validar los 3 modelos, se generaron artefactos de producción completos para cada uno.
+- **Decisión:** 4 archivos de producción en `outputs/`: resultados y config para creativos (SuperGemma/TrevorJS) y resultados y config para Ornstein. Config de Ornstein incluye harness completo con Canonical State Pattern en Python.
+- **Por qué:** La documentación de producción es necesaria para implementar VOID_ENGINE y el MCP server sin tener que re-derivar parámetros. Los runners (`sg19_runner.py`, `orn_runner.py`) quedan en el servidor para re-validar en el futuro si se actualiza llama.cpp o los modelos.
+- **Stack validado final:**
+  - Ornstein: thinking OFF, temperature=0, max_tokens=1024, harness Canonical State
+  - SuperGemma: thinking ON, temperature=0.85, max_tokens=4096
+  - TrevorJS: thinking ON, temperature=0.85, max_tokens=4096

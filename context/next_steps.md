@@ -17,12 +17,19 @@
 - [x] STORY_019 completada — SuperGemma y TrevorJS validados production-ready a ctx=24576
 - [x] Diagnóstico y descarte de story019_suite.py original — max_tokens=512 consumido por thinking, scorers regex frágiles
 - [x] Rediseño del approach de validación — 4 tests cualitativos con criterios legibles por humano (sugeridos por Perplexity)
-- [x] sg19_runner.py creado — runner individual por test, reutilizable para futuros modelos
+- [x] sg19_runner.py creado — runner individual por test para SuperGemma/TrevorJS
 - [x] SG-1 PASS — SuperGemma: 601 palabras, criatura rica, español consistente
 - [x] TJ-1 PASS — TrevorJS: brief de artista 3D completo, 670 palabras, LOD counts, SSS, vertex shader
 - [x] SG-2 PASS — SuperGemma: 1,400 tokens de lore procesados, escena + dilema coherentes
 - [x] TJ-2 PASS — TrevorJS: segunda criatura del mismo universo, ADN estético compartido, ENTITY_043
-- [x] Decisiones D56–D62 formalizadas (ver conversation_memory.md)
+- [x] Ornstein re-validado con 4 tests JSON — T1/T2/T3/T4 PASS a ctx=24576, thinking OFF
+- [x] T1 PASS — AssetSpec3D: JSON perfecto, height_m=2.6, limb_count=6, todos los campos correctos
+- [x] T2 PASS — Extracción entidades: 5 entidades, has_radio=false (boolean), sin duplicados
+- [x] T3 PASS — InteractiveSceneSpec: 3 choices, requires_flag, flags_set, triggers — directo a Unity MCP
+- [x] T4 PASS — Multi-turno: has_radio preservado, former_role agregado; last_updated_turn mitigado por harness
+- [x] orn_runner.py creado — runner con extractor JSON y validación automática de criterios
+- [x] 4 archivos de producción generados y commiteados (resultados + configs para los 3 modelos)
+- [x] Decisiones D56–D65 formalizadas (ver conversation_memory.md)
 
 ---
 
@@ -44,7 +51,7 @@
 ## Próximos Pasos (por prioridad)
 
 1. **VOID_ENGINE implementación base** — construir shell desktop 3 columnas en AdonisJS/Tailwind/DaisyUI desde las guías propias
-2. **STORY_018** — arquitectura de orquestación VOID_ENGINE (depende de STORY_016 ✅ y STORY_019 ✅)
+2. **STORY_018** — arquitectura de orquestación VOID_ENGINE (depende de STORY_016 ✅, STORY_019 ✅, Ornstein ✅)
 3. **STORY_017** — Blueprint Compiler (~150 líneas Python, depende de STORY_016 ✅)
 4. **STORY_002** — MCP server FastMCP, 7 herramientas, puerto 8189
 5. **Fix Ornstein systemd** — resolver parsing de `--chat-template-kwargs` en servicio systemd (STORY_014 adyacente)
@@ -54,4 +61,4 @@
 ## Preguntas para el Usuario al Inicio de Sesión
 
 - ¿Hubo cambios en el servidor desde la última sesión?
-- ¿Empezamos con el shell base de VOID_ENGINE o con la arquitectura STORY_018?
+- ¿Empezamos con el shell base de VOID_ENGINE, STORY_018 (arquitectura de orquestación), o STORY_017 (Blueprint Compiler)?
