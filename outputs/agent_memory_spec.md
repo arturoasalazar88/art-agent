@@ -37,6 +37,8 @@ La unidad de diseño es **(modelo, rol)** — no el modelo solo. Ornstein opera 
 | `trevorjs_visual` | TrevorJS | WF-05 | Narrativa extrema (briefs gore) | Posible | ⚠️ Preliminar — pending STORY_019 |
 | `engineer_session` | El Ingeniero | Todos (modo técnico) | Código, scripts, configs | No | — (agente censored, distinto) |
 | `engineer_unity_exec` | El Ingeniero | WF-08 (ejecución Unity) | Comandos MCP | No | — (solo ve contratos normalizados) |
+| `qwen3_codegen` | Qwen3 Engineer | WF-10 | Código Python / TS funcional + notas de constraints | No | ✅ Validado (STORY_021 — T3 6/6 a 32k) |
+| `qwen3_tool_caller` | Qwen3 Engineer | WF-10 (MCP Unity) | JSON tool call secuencial | Sí | ✅ Validado (STORY_021 — T2+T4 a 32k) |
 
 **Regla crítica:** El Ingeniero en modo `engineer_unity_exec` nunca recibe lore, prosa narrativa ni contenido de `prompt`/`negative_prompt`. Solo recibe: job contract JSON + memoria técnica mínima (infra, paths, puertos).
 
@@ -192,24 +194,63 @@ TOTAL EN USO          ~2,000–4,500 tok   ✅ dentro de 12k
 
 **Nota:** TrevorJS recibe el mínimo de canon deliberadamente. El brief grotesco no requiere coherencia interna profunda — su output siempre pasa por Ornstein antes de llegar a cualquier spec técnica.
 
+### 3.7 qwen3_codegen (WF-10) — ✅ Validado (STORY_021)
+
+ctx disponible: **40,960 tokens** con `Q4_K_M + --cache-type-k q8_0 --cache-type-v q8_0 + --flash-attn on`.
+
+```
+IDENTITY              ~150 tok
+OPERATING_RULES       ~300 tok   (thinking ON, JSON output enforcement)
+ACTIVE_GOALS          ~300 tok   (spec técnica, constraints numerados, files permitidos)
+EXAMPLES              ~500 tok   (1 ejemplo de output correcto con notes[] correctas)
+────────────────────────────────
+OVERHEAD TOTAL        ~1,250 tok
+
+INPUT (spec técnica larga)     ~1,000–27,000 tok  (validado a 27k — needle-in-haystack PASS)
+OUTPUT (código + notes[])      ~2,000–4,500 tok   (thinking ~2-3k + código ~1.5-2k)
+────────────────────────────────
+TOTAL EN USO          ~4,000–32,000 tok   ✅ dentro de 40k
+```
+
+**Parámetros:** `temperature=0.3, top_p=0.95, top_k=20, max_tokens=5000, enable_thinking=true, preserve_thinking=false`
+
+### 3.8 qwen3_tool_caller (WF-10 MCP) — ✅ Validado (STORY_021)
+
+```
+IDENTITY              ~100 tok
+ACTIVE_GOALS          ~200 tok   (tools disponibles + protocolo activo)
+────────────────────────────────
+OVERHEAD TOTAL        ~300 tok
+
+INPUT (brief de escena largo)  ~1,000–27,000 tok
+OUTPUT (tool call JSON)        ~50–200 tok por turno
+────────────────────────────────
+TOTAL POR TURNO       ~1,500–27,500 tok   ✅ dentro de 40k
+```
+
+**Parámetros:** `temperature=0.1, top_p=0.80, top_k=20, max_tokens=2048, enable_thinking=false`
+**Multi-turn:** usar `enable_thinking=true, preserve_thinking=true` — validado 8/8 a 32k (T4 STORY_021)
+
+**Diferencia clave vs Ornstein:** Ornstein normaliza contratos conocidos del proyecto (AssetSpec3D, InteractiveSceneSpec). Qwen3 genera código nuevo y secuencias de tool calls para workflows aún no automatizados. Roles complementarios, no competidores.
+
 ---
 
 ## 4. Matriz Roles × Bloques
 
 ✅ = siempre presente | ○ = opcional/condicional | — = nunca
 
-| Bloque | ornstein_normalizer | ornstein_chapter_analyst | ornstein_interactivity | ornstein_visual_spec | supergemma_writer | trevorjs_visual |
-|---|---|---|---|---|---|---|
-| IDENTITY | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| OPERATING_RULES | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CANON_GLOBAL | ✅ | ✅ | ✅ | ○ (whitelist IDs) | ✅ | ○ (gameplay only) |
-| CANON_ENTITIES | ○ (whitelist) | ✅ | ✅ | ✅ (IDs técnicos) | ✅ | — |
-| CANON_CHAPTERS | — | — | ✅ | — | ✅ | — |
-| ACTIVE_GOALS | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| OPEN_LOOPS | ✅ | ✅ | ✅ | — | ✅ | — |
-| RECENT_DECISIONS | — | ✅ | ✅ | — | ✅ | — |
-| EXAMPLES | ✅ | ✅ | ✅ | ✅ | — | — |
-| CANONICAL_STATE | — | — | — | — | ✅ (por turno) | — |
+| Bloque | ornstein_normalizer | ornstein_chapter_analyst | ornstein_interactivity | ornstein_visual_spec | supergemma_writer | trevorjs_visual | qwen3_codegen | qwen3_tool_caller |
+|---|---|---|---|---|---|---|---|---|
+| IDENTITY | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| OPERATING_RULES | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CANON_GLOBAL | ✅ | ✅ | ✅ | ○ (whitelist IDs) | ✅ | ○ (gameplay only) | — | — |
+| CANON_ENTITIES | ○ (whitelist) | ✅ | ✅ | ✅ (IDs técnicos) | ✅ | — | — | — |
+| CANON_CHAPTERS | — | — | ✅ | — | ✅ | — | — | — |
+| ACTIVE_GOALS | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| OPEN_LOOPS | ✅ | ✅ | ✅ | — | ✅ | — | — | — |
+| RECENT_DECISIONS | — | ✅ | ✅ | — | ✅ | — | — | — |
+| EXAMPLES | ✅ | ✅ | ✅ | ✅ | — | — | ✅ (output correcto con notes[]) | — |
+| CANONICAL_STATE | — | — | — | — | ✅ (por turno) | — | — | ✅ (preserve_thinking) |
 
 ---
 

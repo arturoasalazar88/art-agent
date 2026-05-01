@@ -149,6 +149,52 @@ Metodología: needle document enterrado al ~85% del input total. Relleno cíclic
 
 ---
 
+## Veredicto: posición en el stack
+
+### ¿Superior a los demás modelos?
+
+Depende del eje. No reemplaza a ninguno — cubre un hueco que no tenía cobertura.
+
+| Eje | Qwen3.6-35B-A3B | Ornstein (Gemma 4 26B) | SuperGemma / TrevorJS |
+|---|---|---|---|
+| Ventana de contexto | **32k validado** | 24k | 24k |
+| Velocidad (JSON / tool call) | 1.9s–53s | **3.6s–11s** | 30s–120s |
+| Codegen Python / AdonisJS | **Excelente** | No es su rol | No es su rol |
+| MCP tool use | **Excelente** | Bien (JSON determinístico, más rápido) | No aplica |
+| Escritura creativa uncensored | No puede | No puede | **Único en el stack** |
+| Multi-turn agentic largo | **Excelente** (8/8 a 32k) | Bien (ctx menor) | No aplica |
+| Razonamiento técnico largo | **Excelente** (thinking ON) | No es su rol | No aplica |
+
+### Dónde mete más valor en este proyecto
+
+**1. VOID_ENGINE** — el agente que genera endpoints AdonisJS, servicios, validators desde specs en contexto largo. Es exactamente T3: recibe un documento de arquitectura largo y produce código funcional.
+
+**2. MCP pipeline** — el orquestador que decide qué herramientas Unity llamar y en qué orden. Es exactamente T2+T4: lee un brief de escena enterrado en contexto largo y emite tool calls precisas en secuencia multi-turn.
+
+**3. STORY_017 Blueprint Compiler** — ~150 líneas Python. Se lo das como spec y lo genera funcional con constraints técnicas preservadas.
+
+**4. Agente de ingeniería local** — corre en el servidor, sin API externa, con 32k de contexto. Hasta hoy ese rol lo cumplía Claude Code (remoto). Qwen3 puede cubrir tareas de ingeniería de complejidad media dentro del pipeline sin salir del stack local.
+
+### Qué NO puede hacer que los otros sí
+
+- **Contenido uncensored**: SuperGemma y TrevorJS son el único camino para horror explícito, lore oscuro, diseño gore. Qwen3 está censurado.
+- **Normalización determinística**: Ornstein es más rápido y más predecible para JSON compacto (3.6s vs 1.9s thinking=OFF, pero Ornstein tiene más historial de uso con los contratos del proyecto).
+- **Thinking preservado entre turnos con ctx=32k**: Qwen3 lo hace bien, pero con overhead de latencia (~87-110s por run T4). Para flujos de alta frecuencia, Ornstein sigue siendo preferible.
+
+### Conclusión
+
+Qwen3 es el **ingeniero local del stack**. Completa la arquitectura de 5 capas:
+
+```
+Ideación (SuperGemma) → Canon (SuperGemma) → Normalización (Ornstein)
+                                                      ↓
+                              Orquestación e Ingeniería (Qwen3) ← NUEVO
+                                                      ↓
+                                           Implementación (Unity MCP)
+```
+
+---
+
 ## Runner de validación
 
 ```bash

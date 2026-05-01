@@ -1,7 +1,7 @@
 # Mapa de Workflows — Procesos Creativos y de Generación de Assets
 
-> Versión: 1.0
-> Fecha: 2026-04-28
+> Versión: 1.1
+> Fecha: 2026-05-01 (actualizado con Qwen3.6-35B-A3B — sesión 15)
 > Alcance: Procesos creativos, generación de assets y contratos de handoff entre actores.
 > Este documento es la fuente de verdad para el diseño de la plataforma de orquestación.
 > **No incluye MCP server** — esa capa se define por separado.
@@ -30,12 +30,14 @@
 | **TrevorJS** | gemma-4-26B-A4B-it-uncensored-Q4_K_M | Uncensored | `llama-trevorjs` | Horror corporal, grotesco visual, prompts de imagen extremos | Normalizar, estructurar, emitir specs |
 | **Ornstein** | Ornstein-26B-A4B-it-Q4_K_M | Censored | `llama-ornstein` | Estructura narrativa, normalización, contratos técnicos, fichas 3D | Generar contenido gore o prompts visuales explícitos |
 | **SuperGemma Vision** | supergemma4-26b-abliterated-multimodal-Q4_K_M | Multimodal | `llama-vision` | Análisis de imágenes de referencia: paleta, composición, luz, mood | Generar horror por sí mismo |
+| **Qwen3 Engineer** | Qwen3.6-35B-A3B-Q4_K_M | Censored / MoE | `llama-qwen3` (pendiente systemd) | Codegen (Python, AdonisJS/TS), MCP tool use, orquestación multi-turn, razonamiento técnico largo | Generar contenido creativo o lore |
 
 ### 1.4 Servicios y Herramientas
 
 | Actor | Tipo | URL / Acceso | Rol |
 |---|---|---|---|
-| **llama-server** | Runtime LLM | `10.1.0.105:8012` | Sirve el modelo activo. Un solo modelo a la vez. |
+| **llama-server (creativos/Ornstein)** | Runtime LLM | `10.1.0.105:8012` | Sirve Ornstein / SuperGemma / TrevorJS / Vision. Un solo modelo a la vez. |
+| **llama-server (Qwen3)** | Runtime LLM | `10.1.0.105:8013` | Sirve Qwen3.6-35B-A3B. Puerto dedicado — nunca simultáneo con :8012 (VRAM). |
 | **Open WebUI** | UI de chat | `10.1.0.105:3000` | Interfaz de Arturo para interactuar con LLMs |
 | **ComfyUI** | Generador de imágenes | `10.1.0.105:8188` | Genera imágenes a partir de workflows JSON + prompts |
 | **switch-model.sh** | Script bash | `~/switch-model.sh` | Árbitro de VRAM — detiene modelo activo, arranca el solicitado |
@@ -101,17 +103,27 @@
 
 ```bash
 # Cambio de modelo (siempre antes de cada workflow)
-~/switch-model.sh ornstein    # estructura, briefs, normalización
-~/switch-model.sh supergemma  # ideación libre, escritura de capítulos
-~/switch-model.sh trevorjs    # horror visual, diseño de criaturas
-~/switch-model.sh vision      # análisis de imágenes de referencia
+~/switch-model.sh ornstein    # estructura, briefs, normalización — :8012, ctx=24576
+~/switch-model.sh supergemma  # ideación libre, escritura de capítulos — :8012, ctx=24576
+~/switch-model.sh trevorjs    # horror visual, diseño de criaturas — :8012, ctx=24576
+~/switch-model.sh vision      # análisis de imágenes de referencia — :8012, ctx=24576
 ~/switch-model.sh image       # generación de imágenes con ComfyUI
+
+# Qwen3 (pendiente integración a switch-model.sh — arranque manual por ahora)
+nohup ~/llama.cpp/build/bin/llama-server \
+  --model ~/models/qwen3/Qwen3.6-35B-A3B-Q4_K_M.gguf --alias qwen3-coder \
+  --port 8013 --ctx-size 40960 --n-gpu-layers 99 --n-cpu-moe 99 \
+  --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0 --jinja \
+  --threads 6 --threads-batch 24 > ~/qwen3-live.log 2>&1 &
 
 # Ver estado actual
 ~/switch-model.sh
 ```
 
-**Constraint VRAM crítica:** ctx-size máximo con Q4_K_M = 8,192 tokens. No subir sin cambiar a Q3_K_M primero.
+**Constraint VRAM crítica:**
+- Stack Gemma 4 (:8012): ctx=24576 con `--cache-type-k q4_0 --cache-type-v q4_0`
+- Qwen3 (:8013): ctx=40960 con `--cache-type-k q8_0 --cache-type-v q8_0 --flash-attn on`
+- **Nunca simultáneos** — RTX 3060 12GB no soporta dos modelos activos al mismo tiempo
 
 ---
 
@@ -682,6 +694,49 @@ Revisa, aprueba o solicita re-generación con ajustes
 
 ---
 
+### WF-10 — Ingeniería de Plataforma y Orquestación
+
+**Objetivo:** Generar código funcional, scripts de automatización y secuencias de tool calls para VOID_ENGINE, el MCP server y el pipeline de Unity.
+**Actor principal:** Qwen3 Engineer
+**Interfaz de El Ingeniero:** Claude Code / terminal → Qwen3 :8013
+
+```
+Input: especificación técnica (puede ser larga — hasta 32k tokens)
+  ├── spec de endpoint AdonisJS / servicio TypeScript
+  ├── spec de script Python de pipeline
+  ├── brief de escena Unity con protocolo de tool calls
+  └── arquitectura de orquestación (VOID_ENGINE, STORY_018)
+
+        ┌────────────────────────────────────────┐
+        │  llama-server :8013  (Qwen3 manual)    │
+        └────────────────────────────────────────┘
+                │
+      thinking=OFF para tool calls / JSON compacto
+      thinking=ON  para codegen y razonamiento largo
+                │
+                ▼
+Qwen3 produce:
+  código TypeScript / Python funcional
+  secuencias de MCP tool calls (JSON)
+  scripts de orquestación (batch, pipeline)
+  notas de constraints respetados (notes[])
+                │
+                ▼
+El Ingeniero revisa, integra al repo, prueba
+```
+
+**Regla de aislamiento:** Qwen3 solo recibe especificaciones técnicas. Nunca recibe lore narrativo, prosa de capítulos, briefs gore ni prompts visuales. Opera exclusivamente en el dominio técnico.
+
+**Parámetros por subtarea:**
+
+| Subtarea | Temperature | Thinking | max_tokens |
+|---|---|---|---|
+| Tool call / JSON compacto | 0.1 | OFF | 2,048 |
+| Codegen Python / AdonisJS | 0.3 | ON | 5,000 |
+| Multi-turn orquestación | 0.2 | ON + preserve | 2,048/turno |
+
+---
+
 ## 8. Secuencias Diarias Operativas
 
 ### Caso A — Día de Novelización
@@ -722,6 +777,21 @@ Revisa, aprueba o solicita re-generación con ajustes
 7. [pendiente] El Ingeniero ejecuta sobre Unity MCP
 8. Registrar resultados en jobs/unity/ y validation/
 ```
+
+### Caso D — Día de Ingeniería (VOID_ENGINE / MCP / Scripts)
+
+```
+1. Levantar Qwen3 manualmente en :8013
+   (asegurarse de que :8012 está detenido — VRAM exclusivo)
+2. WF-10: El Ingeniero envía spec técnica a Qwen3 vía API
+3. Qwen3 genera código / tool call sequence / script
+4. El Ingeniero revisa e integra al repo (Claude Code o directamente)
+5. Si el output requiere ejecutar en Unity: WF-08 (job Unity)
+6. Apagar Qwen3 antes de levantar cualquier modelo :8012
+```
+
+**Nota:** Qwen3 no usa Open WebUI — el canal es API directa desde El Ingeniero.
+El contexto de 32k permite pasar specs de arquitectura completas sin fragmentar.
 
 ---
 
