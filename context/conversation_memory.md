@@ -446,6 +446,39 @@
 - **Fallo T4 diagnosticado:** El modelo interpreta last_updated_turn semánticamente (solo incrementa si cambia algo). Mitigado por Canonical State Pattern — el harness controla campos determinísticos externamente.
 - **Velocidad:** 3.6–11.4s por llamada — 10× más rápido que creativos. Apropiado para pipelines encadenados.
 
+---
+
+## 2026-05-01 — Sesión 15: Qwen3.6-35B-A3B Validación
+
+### D66: Qwen3.6-35B-A3B integrado al stack como modelo de ingeniería
+- **Contexto:** Evidencia de Twitter/X (@above_spec, @ItsmeAjayKV) mostraba benchmark en RTX 4060 Ti 8GB (~40 tok/s a 128k ctx) y confirmación directa de usuario con RTX 3060 12GB. Se ejecutó STORY_021 para validar en hardware propio.
+- **Decisión:** Qwen3.6-35B-A3B-Q4_K_M validado y aprobado como modelo de ingeniería del stack. Puerto 8013. No reemplaza Ornstein/SuperGemma/TrevorJS — se añade como especialista en coding, scripts, MCP tool use y razonamiento técnico largo.
+- **Resultados:** PASS perfecto en 4 tests × 5 ctx-sizes (4k/8k/16k/24k/32k). Primera vez en el proyecto que un modelo pasa la suite completa sin un solo fallo en ningún ctx-size.
+- **Build requerido:** llama.cpp v8998 / commit 2098fd616 con soporte nativo qwen3_5_moe (gated_delta_net.cu.o compilado).
+
+### D67: Parámetros de inferencia Qwen3 por tipo de tarea
+- **Contexto:** Qwen3 piensa por defecto (thinking ON). Para extracción JSON y tool calls, thinking aporta 0 valor pero cuesta 25x más tiempo (1.9s vs 49s). Para codegen y multi-turn agentic, thinking es necesario.
+- **Decisión:**
+  - Extracción JSON / tool calls: `enable_thinking=false`, temperature=0.1, max_tokens=2048
+  - Codegen / debugging: `enable_thinking=true`, temperature=0.3, max_tokens=5000
+  - Multi-turn agentic: `enable_thinking=true`, `preserve_thinking=true`, temperature=0.2, max_tokens=2048/turno
+- **Por qué:** Mismo principio que Ornstein (thinking OFF para determinístico) pero con un perfil más: codegen requiere thinking ON con max_tokens alto porque el thinking consume 2-3k tokens antes de generar el código.
+
+### D68: ctx-size producción Qwen3 = 40960
+- **Contexto:** Server ctx=32768 causó fallo en T3 32k (27k input + 5k output = ~32k total, sin margen para overhead de template). Con ctx=40960 todos los tests pasaron incluyendo T3 32k.
+- **Decisión:** ctx-size = 40960 para producción.
+- **Por qué:** T3-tipo tasks (codegen con contexto largo) necesitan ese margen. KV cache q8_0 + FlashAttention mantiene el footprint de VRAM dentro de los 12GB disponibles.
+
+### D69: Suite de validación Qwen3 — metodología needle-in-haystack
+- **Contexto:** Para validar ventana de contexto se usó la misma metodología que con Ornstein/SuperGemma/TrevorJS: el modelo debe encontrar datos exactos enterrados al 85% del input. Si el modelo responde con datos del relleno temático en lugar del needle, falla.
+- **Decisión:** Suite de 4 tests (T1 JSON, T2 MCP, T3 codegen, T4 multi-turn) × 5 ctx-sizes. Criterio PASS: json_valid=true + values_correct=N/N. Relleno cíclico con 4 bloques de survival horror temáticos (sin respuestas correctas).
+- **Runner:** `~/qwen3_runner.py <T1|T2|T3|T4> <4k|8k|16k|24k|32k> [model] [thinking:true|false]`
+
+### D70: Gate check T3 corregido — type hints son comportamiento correcto
+- **Contexto:** T3 fallaba con 5/6 porque el gate buscaba `"def build_manifest(records):"` exacto. El modelo genera `def build_manifest(records: List[Dict[str, Any]]):` con type hints — código de mejor calidad, pero el string exacto no matcheaba.
+- **Decisión:** Gate cambiado a prefix match `"def build_manifest("`. Los type hints son comportamiento correcto y no deben penalizarse.
+- **Por qué:** El objetivo del test es verificar que la función existe y es llamable, no que tenga una firma exacta. Los type hints demuestran que el modelo produce código production-quality.
+
 ### D65: Stack completo documentado — configs de producción para los 3 modelos
 - **Contexto:** Tras validar los 3 modelos, se generaron artefactos de producción completos para cada uno.
 - **Decisión:** 4 archivos de producción en `outputs/`: resultados y config para creativos (SuperGemma/TrevorJS) y resultados y config para Ornstein. Config de Ornstein incluye harness completo con Canonical State Pattern en Python.

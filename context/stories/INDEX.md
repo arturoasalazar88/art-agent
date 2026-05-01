@@ -26,6 +26,7 @@
 | STORY_001 | ✅ | Validación modelos Ornstein — usabilidad, estabilidad, capacidad agéntica (4 bloques) | — |
 | STORY_019 | ✅ | Validación modelos creativos — SuperGemma y TrevorJS (4 tests cualitativos, 4/4 PASS a ctx=24576) | STORY_001 |
 | STORY_020 | ✅ | Agent Harness — sistema de reglas por rol + re-run 14 tests con harness | STORY_001 |
+| STORY_021 | ✅ | Validación Qwen3.6-35B-A3B — ctx=32k, 4 tests × 5 sizes, PASS perfecto | STORY_001 |
 | STORY_002 | ⬜ | MCP server — implementación FastMCP, 7 herramientas, puerto 8189 | STORY_001 |
 | STORY_003 | ⬜ | Estructura ~/horror-game/ en servidor Debian | — |
 | STORY_004 | 🔬 | Investigar Unity MCP — compatibilidad con pipeline local | — |

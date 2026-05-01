@@ -23,6 +23,7 @@
 | `SPEC_context_engineering_agent.md` | ✅ Activo | 2026-04-24 | Spec del patrón context engineering — referencia, no modificar |
 | `.agents/rules/no-assumptions.md` | ✅ Activo | 2026-05-01 | Regla operativa inviolable — evidencia requerida antes de cualquier acción. Cargada en autoload de manifest.yaml y referenciada en core.md. |
 | `.agents/rules/token-efficiency.md` | ✅ Activo | 2026-05-01 | Reglas de eficiencia de tokens — grep antes de leer, SSH compound, plan antes de editar, límite 2 intentos por approach. Cargada en autoload. Fuente: estudio empírico SMU/Heidelberg 2026. |
+| `inputs/handoff-qwen3-upgrade.md` | ✅ Activo | 2026-05-01 | Handoff de research del usuario para integrar Qwen3.6-35B-A3B. Evidencia de benchmarks, plan de 6 fases, URLs de descarga, template de servicio systemd. |
 
 ---
 
@@ -47,10 +48,14 @@
 | `outputs/void_engine_layout_guide.md` | ✅ Activo | 2026-05-01 | Guía de layout de VOID_ENGINE. Define shell desktop 3 columnas, dimensiones, reglas de scroll, breakpoints, pantalla base Main Workspace y política de mocks on-demand. Fuente de verdad para layout de plataforma. |
 | `outputs/void_engine_ui_ux_guide.md` | ✅ Activo | 2026-05-01 | Guía UI/UX de VOID_ENGINE. Define principios visuales, paleta dark-only, tipografía, componentes, reglas de copy, UX por tarea y política de Gemini/Stitch como herramienta exploratoria de baja confianza. |
 | `context/stories/STORY_016_agentes_especializados.md` | ✅ Completado | 2026-04-30 | Story de diseño de agentes especializados + memoria atómica. Completada en sesión 11. |
+| `context/stories/STORY_021_qwen3_validacion.md` | ✅ Completado | 2026-05-01 | Story de validación Qwen3.6-35B-A3B. PASS perfecto 4 tests × 5 ctx-sizes hasta 32k. Pendiente: systemd + switch-model.sh. |
 | `outputs/story019_validation_results.md` | ✅ Activo | 2026-04-30 | Resultados completos STORY_019 — métricas por test (SG-1/SG-2/TJ-1/TJ-2), highlights de output, hallazgos técnicos sobre max_tokens y thinking budget. |
 | `outputs/creative_models_production_config.md` | ✅ Activo | 2026-04-30 | Config de producción validada para SuperGemma y TrevorJS — comandos de arranque, parámetros de inferencia, system prompts, restricciones de hardware, tiempos esperados. |
 | `outputs/ornstein_validation_results.md` | ✅ Activo | 2026-04-30 | Resultados completos validación Ornstein — T1/T2/T3/T4, JSON outputs reales, diagnóstico de last_updated_turn, hallazgos técnicos. |
 | `outputs/ornstein_production_config.md` | ✅ Activo | 2026-04-30 | Config de producción Ornstein — comando arranque, parámetros, 4 system prompts por contrato, harness completo con Canonical State Pattern (código Python). |
+| `outputs/qwen3_validation_results.md` | ✅ Activo | 2026-05-01 | Resultados completos STORY_021 — T1/T2/T3/T4 × 4k/8k/16k/24k/32k, PASS perfecto en todos. Hallazgos: thinking ON vs OFF, max_tokens por tarea, latencias, diagnóstico de 4 fallos intermedios. |
+| `outputs/qwen3_production_config.md` | ✅ Activo | 2026-05-01 | Config de producción Qwen3.6-35B-A3B — comando arranque (puerto 8013, ctx=40960), 3 perfiles de inferencia (extracción, codegen, agentic), tabla de ventana validada, posición en el stack. |
+| `outputs/qwen3_runner.py` | ✅ Activo | 2026-05-01 | Runner de validación Qwen3 — 4 tests (T1 JSON, T2 MCP, T3 codegen, T4 multi-turn) × 5 ctx-sizes. Needle-in-haystack methodology. Uso: `python3 qwen3_runner.py <T1|T2|T3|T4> <4k|8k|16k|24k|32k>`. |
 
 ---
 
@@ -97,6 +102,8 @@
 | `~/story019_suite.py` | 🔒 Histórico | Suite original — descartada, max_tokens=512 consumido por thinking, scorers regex frágiles |
 | `~/sg19_runner.py` | ✅ Activo | Runner individual por test SuperGemma/TrevorJS — 4 tests cualitativos (sg1/sg2/tj1/tj2) |
 | `~/orn_runner.py` | ✅ Activo | Runner individual por test Ornstein — 4 tests JSON (t1/t2/t3/t4), incluye extractor JSON y validación automática de criterios |
+| `~/qwen3_runner.py` | ✅ Activo | Runner validación Qwen3 — espejo de `outputs/qwen3_runner.py` |
+| `~/models/qwen3/Qwen3.6-35B-A3B-Q4_K_M.gguf` | ✅ Activo | Modelo GGUF 21.3 GB — bartowski Q4_K_M |
 | `~/story019_results/supergemma_results.json` | 🔒 Histórico | Resultados v1 sin raw output — no interpretar |
 | `~/story019_results/trevorjs_results.json` | 🔒 Histórico | Resultados v1 sin raw output — no interpretar |
 | `~/weaver_spec.txt` | ✅ Activo | Spec visual "The Weaver" generado por TrevorJS — input para TJ-2 y referencia de calidad |
