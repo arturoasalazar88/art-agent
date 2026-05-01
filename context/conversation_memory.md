@@ -1,6 +1,6 @@
 # Memoria de Conversación — Log de Decisiones
 
-> Última actualización: 2026-05-01 (sesión 13 — D55)
+> Última actualización: 2026-04-30 (sesión 14 — D62)
 > Formato: Cronológico, comprimido. Decisiones y su WHY, no transcripción.
 > Trigger de actualización: Después de cada sesión donde se toma una decisión significativa.
 
@@ -386,3 +386,46 @@
 - **Por qué:** La plataforma necesita copy exacto, workflows controlados y layouts reproducibles. Stitch no puede garantizar fidelidad textual ni estructural. El código sí permite controlar datos, componentes, estados y comportamiento.
 - **Descartado:** Prompt engineering adicional para Stitch como fuente de verdad de layout/copy; cuatro iteraciones demostraron que el costo marginal supera el valor.
 - **Artefactos derivados:** `outputs/void_engine_layout_guide.md` y `outputs/void_engine_ui_ux_guide.md`.
+
+---
+
+## 2026-04-30 — Sesión 14: STORY_019 Validación Modelos Creativos
+
+### D56: Open WebUI conserva puerto fijo 8012
+- **Contexto:** Al integrar el modelo multimodal y los creativos, surgió la pregunta de si Open WebUI debía reconfigurar el puerto al cambiar de modelo.
+- **Decisión:** Puerto fijo 8012 para todos los modelos. Open WebUI nunca se reconfigura.
+- **Por qué:** D04 establece el puerto fijo como invariante. Docker ya apunta a 8012. El switch de modelo es vía systemd/terminal, no vía reconfiguración del cliente.
+
+### D57: Configuración de thinking por rol de modelo
+- **Contexto:** STORY_001/020 validaron Ornstein con thinking OFF. STORY_019 necesitaba definir la configuración para los modelos creativos.
+- **Decisión:** Ornstein → ctx=24576 + KV q4_0 + **thinking OFF**. SuperGemma/TrevorJS → misma config hardware, **thinking ON** para tareas creativas.
+- **Por qué:** Thinking OFF es correcto para tareas estructuradas con output JSON (Ornstein). Para modelos creativos, el thinking enriquece la calidad narrativa — validado en SG-1/TJ-1 donde el CoT produjo output más denso y coherente.
+
+### D58: No-Assumptions Rule actualizada a v2.0
+- **Contexto:** Durante el run de story019_suite.py v1, el agente asumió que los scores de 0 indicaban un bug en el scorer antes de verificar el raw output del modelo.
+- **Decisión:** Regla ampliada con restricciones específicas para evaluación de métricas y scorers. "Score=0 does NOT mean output was empty — read the actual output first." Guardada en `.agents/rules/no-assumptions.md`.
+- **Por qué:** Violación de la regla original causó pérdida de tiempo diagnosticando el scorer en lugar de diagnosticar el script. El error real era max_tokens insuficiente.
+
+### D59: story019_suite.py descartada como approach de validación
+- **Contexto:** El script original (455 líneas) tenía dos problemas críticos: (1) no guardaba raw output del modelo — imposible saber qué generó, (2) scorers regex frágiles para modelos uncensored que responden en inglés o sin usar IDs literales.
+- **Opciones:** Reescribir suite v2 con raw output, o rediseñar el approach completo.
+- **Decisión:** Descartar la suite de 9 tests regex-scored. Reemplazar con 4 tests cualitativos evaluados por humano.
+- **Por qué:** Los scorers regex miden cumplimiento de formato, no calidad creativa. Un modelo que produce 600 palabras ricas en inglés puede recibir score=0 por no usar `char_elena` literalmente. El objetivo es validar que el modelo funciona a ctx=24576, no que siga instrucciones de formato estricto.
+
+### D60: Approach de validación creativa — tests cualitativos con criterios de 30 segundos
+- **Contexto:** STORY_019 necesitaba un método de validación apropiado para modelos creativos uncensored.
+- **Opciones:** Scorers automáticos (descartado por D59), evaluación completamente subjetiva, criterios cualitativos legibles por humano.
+- **Decisión:** 4 tests con criterios explícitos evaluables en 30 segundos: presencia de output real, coherencia con el prompt, riqueza de detalle, y — para tests de serie — consistencia de universo entre criaturas. Prompt diseñado con Perplexity. Runner individual `sg19_runner.py` para correr un test a la vez y ajustar antes del siguiente.
+- **Por qué:** La validación debe responder "¿el modelo funciona para el pipeline?" no "¿el modelo siguió el formato exacto?". Un humano puede responder esa pregunta en 30 segundos leyendo el output.
+
+### D61: max_tokens=4096 requerido para modelos con thinking ON
+- **Contexto:** La suite original usaba max_tokens=512. Con thinking ON, el modelo consumía ~495 tokens de CoT, dejando 0-17 tokens para el contenido. Output vacío en todos los tests.
+- **Decisión:** max_tokens mínimo 2,048 con thinking ON; recomendado 4,096 para dar margen real al contenido.
+- **Por qué:** En llama.cpp, los thinking tokens cuentan contra max_tokens. Con CTX=24576 hay margen amplio — no hay razón para limitar el output. Validado: SG-1 usó 2,288 tokens de completion (1,346 thinking + ~942 contenido) con max_tokens=4096.
+
+### D62: SuperGemma y TrevorJS validados production-ready a ctx=24576
+- **Contexto:** STORY_019 — validar que los modelos creativos mantienen inteligencia y confiabilidad con la ventana de contexto expandida.
+- **Tests ejecutados:** SG-1 (smoke + creatividad), TJ-1 (spec técnico visual), SG-2 (stress ctx con 1,400 tokens de lore), TJ-2 (coherencia de serie entre criaturas).
+- **Resultados:** 4/4 PASS. SG-1: criatura "El Amalgama de la Veta", 601 palabras, español coherente. TJ-1: brief artista 3D completo con LOD counts y vertex shader. SG-2: escena + dilema integrando lore con precisión. TJ-2: segunda criatura (ENTITY_043) con ADN estético compartido y distinción de rol.
+- **Decisión:** Ambos modelos aprobados para producción. Stack completo validado: Ornstein + SuperGemma + TrevorJS, todos a ctx=24576.
+- **Por qué importa:** El pipeline de 5 fases puede ejecutarse con el hardware actual. No se necesita upgrade para iniciar producción creativa.

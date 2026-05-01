@@ -1,6 +1,6 @@
 # Stories Index — Trabajo Pendiente
 
-> Última actualización: 2026-04-30
+> Última actualización: 2026-04-30 (sesión 14)
 > Trigger: Cada vez que se crea, actualiza o cierra una story.
 > Formato individual: `context/stories/STORY_XXX_nombre.md`
 
@@ -24,7 +24,7 @@
 | ID | Estado | Título | Depende de |
 |---|---|---|---|
 | STORY_001 | ✅ | Validación modelos Ornstein — usabilidad, estabilidad, capacidad agéntica (4 bloques) | — |
-| STORY_019 | ⬜ | Validación modelos creativos — SuperGemma y TrevorJS (9 tests, riqueza + coherencia) | STORY_001 |
+| STORY_019 | ✅ | Validación modelos creativos — SuperGemma y TrevorJS (4 tests cualitativos, 4/4 PASS a ctx=24576) | STORY_001 |
 | STORY_020 | ✅ | Agent Harness — sistema de reglas por rol + re-run 14 tests con harness | STORY_001 |
 | STORY_002 | ⬜ | MCP server — implementación FastMCP, 7 herramientas, puerto 8189 | STORY_001 |
 | STORY_003 | ⬜ | Estructura ~/horror-game/ en servidor Debian | — |

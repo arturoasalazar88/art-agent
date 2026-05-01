@@ -5,6 +5,9 @@ language: es
 autoload:
   rules:
     - rules/core.md
+    - rules/no-assumptions.md
+    - rules/token-efficiency.md
+    - rules/antigravity-rtk-rules.md
   workflows:
     - workflows/session-lifecycle.md
     - workflows/recovery-from-checkpoint.md

@@ -1,6 +1,6 @@
 # Registro de Artefactos
 
-> Última actualización: 2026-05-01 (sesión 13)
+> Última actualización: 2026-04-30 (sesión 14)
 > Trigger de actualización: Cada vez que se crea, modifica o depreca un archivo.
 
 ---
@@ -21,6 +21,8 @@
 | `context/agent_harness.md` | ✅ Activo | 2026-04-29 | Reglas de producción del harness — fuente de verdad para STORY_007 y STORY_016 |
 | `context/validation_results_complete.md` | ✅ Activo | 2026-04-30 | Resultados milimétricos completos — todos los bloques A/B/C/D + harness v1/v2, run por run, diagnóstico de cada failure mode. Referencia técnica para proyectos futuros. |
 | `SPEC_context_engineering_agent.md` | ✅ Activo | 2026-04-24 | Spec del patrón context engineering — referencia, no modificar |
+| `.agents/rules/no-assumptions.md` | ✅ Activo | 2026-05-01 | Regla operativa inviolable — evidencia requerida antes de cualquier acción. Cargada en autoload de manifest.yaml y referenciada en core.md. |
+| `.agents/rules/token-efficiency.md` | ✅ Activo | 2026-05-01 | Reglas de eficiencia de tokens — grep antes de leer, SSH compound, plan antes de editar, límite 2 intentos por approach. Cargada en autoload. Fuente: estudio empírico SMU/Heidelberg 2026. |
 
 ---
 
@@ -88,7 +90,11 @@
 | `~/story001_harness_results/harness_14tests.json` | ✅ Activo | Scores finales con harness aplicado |
 | `~/story001_harness_results/comparison.md` | ✅ Activo | Tabla antes vs después por test |
 | `~/story001_harness_results/production_rules.json` | ✅ Activo | Reglas validadas por rol — input para STORY_007 y STORY_016 |
-| `~/story019_suite.py` | ✅ Activo | Suite validación SuperGemma/TrevorJS — detecta modelos faltantes |
+| `~/story019_suite.py` | 🔒 Histórico | Suite original — descartada, max_tokens=512 consumido por thinking, scorers regex frágiles |
+| `~/sg19_runner.py` | ✅ Activo | Runner individual por test — 4 tests cualitativos (sg1/sg2/tj1/tj2), reutilizable para futuros modelos |
+| `~/story019_results/supergemma_results.json` | 🔒 Histórico | Resultados v1 sin raw output — no interpretar |
+| `~/story019_results/trevorjs_results.json` | 🔒 Histórico | Resultados v1 sin raw output — no interpretar |
+| `~/weaver_spec.txt` | ✅ Activo | Spec visual "The Weaver" generado por TrevorJS — input para TJ-2 y referencia de calidad |
 | `~/ComfyUI/workflows/pony_horror.json` | ✅ Activo | Workflow base — Pony + VAE, sin LoRAs |
 | `~/ComfyUI/workflows/pony_horror_lora.json` | ✅ Activo | Workflow completo — Pony + VAE + 3 LoRAs |
 
