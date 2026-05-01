@@ -33,8 +33,8 @@ La unidad de diseño es **(modelo, rol)** — no el modelo solo. Ornstein opera 
 | `ornstein_chapter_analyst` | Ornstein | WF-02 (post-escritura) | JSON (ChapterMemoryRecord) | No | ✅ Validado (N1–N5) |
 | `ornstein_interactivity` | Ornstein | WF-07 | JSON (InteractiveSceneSpec, BranchGraphSpec) | No | ✅ Validado (W1–W5) |
 | `ornstein_visual_spec` | Ornstein | WF-05, WF-06 (normalización) | JSON (AssetSpec3D, MaterialProfile) | No | ✅ Validado (V1–V4) |
-| `supergemma_writer` | SuperGemma | WF-01, WF-02, WF-03 | Narrativa libre + JSON resumen | Sí | ⚠️ Preliminar — pending STORY_019 |
-| `trevorjs_visual` | TrevorJS | WF-05 | Narrativa extrema (briefs gore) | Posible | ⚠️ Preliminar — pending STORY_019 |
+| `supergemma_writer` | SuperGemma | WF-01, WF-02, WF-03 | Narrativa libre + JSON resumen | Sí | ✅ Validado (STORY_019 — SG-1/SG-2 PASS a ctx=24576) |
+| `trevorjs_visual` | TrevorJS | WF-05 | Narrativa extrema (briefs gore) | Posible | ✅ Validado (STORY_019 — TJ-1/TJ-2 PASS a ctx=24576) |
 | `engineer_session` | El Ingeniero | Todos (modo técnico) | Código, scripts, configs | No | — (agente censored, distinto) |
 | `engineer_unity_exec` | El Ingeniero | WF-08 (ejecución Unity) | Comandos MCP | No | — (solo ve contratos normalizados) |
 | `qwen3_codegen` | Qwen3 Engineer | WF-10 | Código Python / TS funcional + notas de constraints | No | ✅ Validado (STORY_021 — T3 6/6 a 32k) |
@@ -149,7 +149,7 @@ OUTPUT (AssetSpec3D / MaterialProfile)        ~400–800 tok
 TOTAL EN USO          ~3,000–4,500 tok   ✅ dentro de 12k
 ```
 
-### 3.5 supergemma_writer (WF-01, WF-02) — ⚠️ PRELIMINAR
+### 3.5 supergemma_writer (WF-01, WF-02) — ✅ Validado (STORY_019)
 
 Multi-turn — budget conservador para no penalizar con prefill largo en cada turno.
 
@@ -176,7 +176,7 @@ TARGET: ≤ 12k en turno 3  ✅ viable
 
 **Nota:** Si la sesión excede 3-4 turnos, el harness debe comprimir el historial o abrir nueva sesión. El Canonical State Manager reconstruye el estado desde el canonical dict, no del historial.
 
-### 3.6 trevorjs_visual (WF-05) — ⚠️ PRELIMINAR
+### 3.6 trevorjs_visual (WF-05) — ✅ Validado (STORY_019)
 
 ```
 IDENTITY              ~150 tok
@@ -520,7 +520,7 @@ Estos ejemplos son los que validaron score=4 en harness v2. Son el seed para el 
 | Limitación | Descripción | Mitigación |
 |---|---|---|
 | W2 (multi-turn state) | El modelo puede perder estado de entidades entre turnos sin canonical injection | Canonical State Manager — mandatory para supergemma_writer |
-| SuperGemma/TrevorJS sin validación | Specs preliminares sin evidencia empírica de scores | Pendiente STORY_019 — no usar en producción hasta validar |
+| ~~SuperGemma/TrevorJS sin validación~~ | ✅ Resuelto — STORY_019 completada sesión 14 | SG-1/SG-2/TJ-1/TJ-2 PASS a ctx=24576. Aprobados para producción. |
 | Prefill lento en ctx alto | ctx≥20k → ~31s en primera llamada | Usar 20k solo para WF-07 one-shot. Multi-turn ≤ 12k |
 | Un modelo a la vez | RTX 3060 no permite dos modelos simultáneos | switch-model.sh es obligatorio antes de cada invocación |
 | Memory Compiler no implementado | Este documento es la spec — la implementación es STORY_017 | No invocar agentes con bloques compilados hasta STORY_017 |
@@ -531,7 +531,8 @@ Estos ejemplos son los que validaron score=4 en harness v2. Son el seed para el 
 
 | Paso | Story | Descripción |
 |---|---|---|
-| Implementar Memory Compiler | STORY_017 | Script Python ~150 líneas — produce compiled_prompt desde compiler_input |
-| Validar SuperGemma/TrevorJS | STORY_019 | Re-descargar modelos, correr suite de 9 tests, confirmar specs o ajustar |
-| System prompts por workflow | STORY_007 | Expandir OPERATING_RULES + IDENTITY de cada rol con prompts específicos por workflow |
-| Plataforma de orquestación | STORY_018 | Scheduler, queue, switch-model.sh automático, notificaciones Artista-Ingeniero |
+| Implementar Memory Compiler | STORY_017 ⬜ | Script Python ~150 líneas — produce compiled_prompt desde compiler_input |
+| ~~Validar SuperGemma/TrevorJS~~ | STORY_019 ✅ | Completada sesión 14. SG-1/SG-2/TJ-1/TJ-2 PASS a ctx=24576. |
+| ~~Validar Qwen3 Engineer~~ | STORY_021 ✅ | Completada sesión 15. T1/T2/T3/T4 PASS a ctx=32k. Roles qwen3_codegen y qwen3_tool_caller listos. |
+| System prompts por workflow | STORY_007 ⬜ | Expandir OPERATING_RULES + IDENTITY de cada rol con prompts específicos por workflow |
+| Plataforma de orquestación | STORY_018 ⬜ | Scheduler, queue, switch-model.sh automático, notificaciones Artista-Ingeniero |

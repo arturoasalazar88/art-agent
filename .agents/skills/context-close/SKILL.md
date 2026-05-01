@@ -61,11 +61,26 @@ Solo si hubo cambios en:
 - riesgos activos
 - glosario
 
-### Paso 6 - Limpiar checkpoint
+### Paso 6 - Escaneo de markers obsoletos en outputs/
+
+Si en esta sesion se completo al menos una STORY (cambio de estado a ✅):
+
+1. Identificar el numero de cada story completada (XXX)
+2. Para cada una, ejecutar:
+   ```bash
+   grep -rn "pending STORY_XXX" outputs/
+   ```
+3. Si hay matches, actualizarlos antes de continuar:
+   - Cambiar `⚠️ Preliminar — pending STORY_XXX` por `✅ Validado (STORY_XXX — descripcion breve)`
+4. Si los matches estan en archivos marcados `🔒 Historico`, ignorarlos (son intencionales)
+
+Ver reglas completas en `.agents/rules/memory-hygiene.md`.
+
+### Paso 7 - Limpiar checkpoint
 
 Si existe `context/working_memory.md`, eliminarlo o vaciarlo porque un cierre exitoso invalida el checkpoint.
 
-### Paso 7 - Confirmar cierre
+### Paso 8 - Confirmar cierre
 
 Resume:
 - fecha de cierre

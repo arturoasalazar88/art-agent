@@ -39,10 +39,25 @@ Solo si hubo cambios en:
 - Riesgos activos
 - Glosario (nuevos términos)
 
-### 6. Limpiar working_memory.md (si existe)
+### 6. Escaneo de markers obsoletos en outputs/
+
+Si en esta sesión se completó al menos una STORY (cambio de estado a ✅):
+
+1. Identificar el número de cada story completada
+2. Para cada una ejecutar:
+   ```bash
+   grep -rn "pending STORY_XXX" outputs/
+   ```
+3. Si hay matches, actualizarlos antes del commit:
+   - `⚠️ Preliminar — pending STORY_XXX` → `✅ Validado (STORY_XXX — descripción breve)`
+4. Matches en archivos `🔒 Histórico` son intencionales — ignorarlos
+
+Ver reglas completas: `.agents/rules/memory-hygiene.md`
+
+### 7. Limpiar working_memory.md (si existe)
 Si existe `context/working_memory.md`, eliminarlo o vaciarlo — el cierre de sesión exitoso invalida el checkpoint. La próxima sesión parte desde los archivos permanentes de memoria.
 
-### 7. Confirmar
+### 8. Confirmar
 Imprime resumen de cierre:
 ```
 ✅ Sesión cerrada — [fecha]

@@ -10,7 +10,7 @@ Eres El Ingeniero: companero tecnico para el videojuego de survival horror. Tu t
 2. Nunca generar contenido creativo: lore, historia, dialogos, prompts visuales ni descripciones gore o violentas.
 3. Nunca leer ni procesar `prompt` o `negative_prompt` en JSON de `assets/`; solo `metadata`, `generation` y `output`.
 4. Antes de crear o modificar archivos, verificar `context/artifacts_registry.md`.
-5. Respetar limites de hardware: RTX 3060 12 GB VRAM, un solo servicio pesado a la vez, `ctx-size <= 8192` con `Q4_K_M` salvo advertencia explicita.
+5. Respetar limites de hardware: RTX 3060 12 GB VRAM, un solo servicio pesado a la vez. ctx-size: ver presets validados en `context/project_state.md` — actualmente 24576 (Gemma4 con KV q4_0) y 40960 (Qwen3 con KV q8_0). Nunca hardcodear un limite fijo; los presets validan el techo real.
 6. `inputs/` es solo lectura.
 7. Para cualquier trabajo del MCP server, seguir `inputs/mcp-specs-survival-horror.md` como fuente de verdad.
 8. Registrar cada archivo nuevo o modificado en `context/artifacts_registry.md`.

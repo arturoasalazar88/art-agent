@@ -44,6 +44,7 @@ Construir un videojuego de survival horror con un pipeline de producción comple
 | SuperGemma | supergemma4-26b-uncensored-fast-v2-Q4_K_M.gguf | llama-supergemma | Ideación libre, escenas crudas, diálogo oscuro, lore, criaturas |
 | TrevorJS | gemma-4-26B-A4B-it-uncensored-Q4_K_M.gguf | llama-trevorjs | Grotesco visual, horror corporal, prompts visuales extremos |
 | SuperGemma Vision | supergemma4-26b-abliterated-multimodal-Q4_K_M.gguf + mmproj | llama-vision | Análisis de imágenes de referencia (composición, paleta, mood) |
+| Qwen3 | Qwen3-235B-A22B-Q4_K_M.gguf (MoE, 3B activos/token) | llama-qwen3 (⬜ pendiente) | Ingeniería: codegen, tool calls MCP, orquestación VOID_ENGINE |
 
 ### ComfyUI — Generación de Imágenes
 - Checkpoint: Pony Diffusion V6 XL
@@ -71,7 +72,8 @@ Construir un videojuego de survival horror con un pipeline de producción comple
 
 | Servicio | URL | Puerto | Estado |
 |---|---|---|---|
-| llama-server | `http://10.1.0.105:8012` | 8012 | ✅ Operativo (5 modelos) |
+| llama-server (creativos) | `http://10.1.0.105:8012` | 8012 | ✅ Operativo (Ornstein/SuperGemma/TrevorJS/Vision) |
+| llama-server (ingeniería) | `http://10.1.0.105:8013` | 8013 | ⬜ Manual — Qwen3 (pendiente systemd) |
 | Open WebUI | `http://10.1.0.105:3000` | 3000 | ✅ Operativo (Docker) |
 | ComfyUI | `http://10.1.0.105:8188` | 8188 | ✅ Operativo (systemd) |
 | MCP server | `http://10.1.0.105:8189` | 8189 | ⬜ Pendiente implementación |
@@ -106,6 +108,18 @@ Construir un videojuego de survival horror con un pipeline de producción comple
 > Requiere `--cache-type-k q4_0 --cache-type-v q4_0` para que el KV cache quepa en VRAM.
 > Sin esos flags, SEGV a partir de ctx > 8192.
 
+### Preset Qwen3 — ctx=40960 (validado 2026-05-01, STORY_021)
+
+```
+--ctx-size 40960 --cache-type-k q8_0 --cache-type-v q8_0
+--n-gpu-layers 99 --n-cpu-moe 99 --flash-attn on --jinja
+--port 8013 --metrics --slots --slot-save-path ~/llama-slots --threads 6 --threads-batch 6 --threads-http 4
+```
+
+> Modelo: `~/models/qwen3/Qwen3-235B-A22B-Q4_K_M.gguf` (o variante local)
+> `--n-cpu-moe 99`: expertos MoE se ejecutan en RAM — permite 35B+ en 12GB GPU
+> `--cache-type-k q8_0 --cache-type-v q8_0`: KV cache comprimido para 40k ctx en 12GB
+
 ### Preset Vision (supergemma-vision)
 
 ```
@@ -120,6 +134,7 @@ Nota: `--mmproj-use-cpu` no existe en este build. Se usa `--override-tensor ".*=
 |---|---|
 | `~/llama.cpp/build/bin/llama-server` | Binario llama.cpp |
 | `~/models/gemma4/` | Modelos LLM (Ornstein, SuperGemma, TrevorJS) |
+| `~/models/qwen3/` | Modelo Qwen3 (ingeniería/codegen) |
 | `~/models/multimodal/` | Modelo vision + mmproj |
 | `~/ComfyUI/` | Entorno ComfyUI completo |
 | `~/ComfyUI/models/checkpoints/` | Pony Diffusion V6 XL |
@@ -137,6 +152,7 @@ Nota: `--mmproj-use-cpu` no existe en este build. Se usa `--override-tensor ".*=
 | llama-supergemma | `/etc/systemd/system/llama-supergemma.service` |
 | llama-trevorjs | `/etc/systemd/system/llama-trevorjs.service` |
 | llama-vision | `/etc/systemd/system/llama-vision.service` |
+| llama-qwen3 | `/etc/systemd/system/llama-qwen3.service` — ⬜ pendiente creación |
 | comfyui | `/etc/systemd/system/comfyui.service` |
 
 ---
@@ -163,7 +179,7 @@ Alternativa superior: RTX 3090 24GB (~$600-800 USD) + mantener 3060 = misma VRAM
 
 | Riesgo | Severidad | Mitigación |
 |---|---|---|
-| VRAM al límite | 🔴 Alta | Nunca subir ctx-size de 8192 sin bajar a Q3_K_M. Monitorear con `journalctl`. |
+| VRAM al límite | 🔴 Alta | Usar presets validados (ctx=24576 KV-q4_0 para Gemma4, ctx=40960 KV-q8_0 para Qwen3). Ver sección Presets. Monitorear con `journalctl`. |
 | Puerto único compartido (8012) | 🟡 Media | Solo un modelo activo a la vez. `switch-model.sh` previene conflictos. |
 | Restart loop en SEGV | 🟡 Media | Servicios tienen `Restart=on-failure`. Monitorear con `journalctl -u llama-X -f`. |
 | ComfyUI + llama-server simultáneos | 🔴 Alta | Imposible — RTX 3060 no tiene VRAM para ambos. Switch obligatorio. |
@@ -176,7 +192,8 @@ Alternativa superior: RTX 3090 24GB (~$600-800 USD) + mantener 3060 = misma VRAM
 | Parámetro | Límite | Consecuencia si excede |
 |---|---|---|
 | ctx-size con Q4_K_M | 8192 sin flags extra | SEGV — KV cache no cabe en VRAM |
-| ctx-size con Q4_K_M + KV q4_0 | **24576 validado** | PASS en 3 configs; techo real >24576 sin probar |
+| ctx-size con Q4_K_M + KV q4_0 (Gemma4) | **24576 validado** (STORY_001) | PASS en 3 configs; techo real >24576 sin probar |
+| ctx-size Qwen3 MoE + KV q8_0 | **40960 validado** (STORY_021) | PASS T1-T4 × 4k-32k; --n-cpu-moe 99 obligatorio |
 | ctx-size con Q3_K_M | ~16384 estimado | No validado — omitido, Q4_K_M+KV ya lo supera |
 | `--n-cpu-moe` | 12 mínimo | Valores menores causan fallos de memoria |
 | VRAM libre con modelo cargado | ~27 MB | No cabe mmproj en GPU — forzar a CPU |
@@ -298,6 +315,7 @@ El orquestador técnico (Unity MCP) nunca recibe horror explícito en lenguaje n
 | LoRA | Adaptador de bajo rango — modifica estilo del modelo base |
 | mmproj | Vision encoder — archivo separado que habilita procesamiento de imágenes |
 | abliterated | Modelo al que se le removieron pesos de rechazo (uncensored) |
+| Qwen3 | Modelo LLM MoE de Alibaba — 235B total, 22B activos — rol de ingeniería en el stack |
 | MoE | Mixture of Experts — arquitectura donde solo parte de los parámetros se activan |
 | KV cache | Caché de key-value en VRAM — determina el tamaño de contexto posible |
 | ctx-size | Tamaño de ventana de contexto en tokens |

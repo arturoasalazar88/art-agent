@@ -31,7 +31,7 @@ Producir la especificación completa de los agentes especializados del pipeline 
 - [x] Presupuesto de tokens por rol y por workflow justificado con ctx=24576
 - [x] Spec del Memory Compiler (qué produce, no cómo lo implementa)
 - [x] Reglas de invocación: qué bloques cargar para cada workflow
-- [x] SuperGemma y TrevorJS marcados como `pending STORY_019`
+- [x] SuperGemma y TrevorJS marcados como `pending STORY_019` → ✅ validados en STORY_019 (sesión 14)
 - [x] Documento permite construir el harness para cualquier (modelo, rol) sin fuentes adicionales
 
 ---

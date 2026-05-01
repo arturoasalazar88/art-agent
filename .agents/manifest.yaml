@@ -8,6 +8,7 @@ autoload:
     - rules/no-assumptions.md
     - rules/token-efficiency.md
     - rules/antigravity-rtk-rules.md
+    - rules/memory-hygiene.md
   workflows:
     - workflows/session-lifecycle.md
     - workflows/recovery-from-checkpoint.md
