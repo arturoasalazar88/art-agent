@@ -1,6 +1,6 @@
 # Memoria de Conversación — Log de Decisiones
 
-> Última actualización: 2026-04-29 (sesión 8 — D45)
+> Última actualización: 2026-04-30 (sesión 12 — D54)
 > Formato: Cronológico, comprimido. Decisiones y su WHY, no transcripción.
 > Trigger de actualización: Después de cada sesión donde se toma una decisión significativa.
 
@@ -351,3 +351,26 @@
 - **Contexto:** El archivo crecerá indefinidamente degradando rendimiento de carga.
 - **Decisión:** Cuando supere 50 decisiones, archivar las más antiguas a `context/conversation_memory_archive_YYYY.md` y mantener solo las últimas 30 en el archivo activo.
 - **Por qué:** Mantiene el archivo de carga pequeño y rápido. El archivo de decisiones activas debe ser manejable para el contexto de Claude Code.
+
+---
+
+## 2026-04-30 — Sesión 12: VOID_ENGINE Platform UI Design
+
+### D52: Tech stack frontend VOID_ENGINE — Tailwind CSS + DaisyUI
+- **Contexto:** Se necesitaba un framework CSS para la plataforma de orquestación VOID_ENGINE construida sobre AdonisJS 7.x + HTMX + Alpine.js. La pregunta era si usar una librería de componentes o CSS puro.
+- **Opciones:** Tailwind solo (máximo control, más trabajo), Tailwind + DaisyUI (componentes HTML puros + sistema de temas), Tailwind + Flowbite (más orientado a dashboards), shadcn/ui (requiere React — incompatible).
+- **Decisión:** Tailwind CSS + DaisyUI.
+- **Por qué:** DaisyUI usa CSS custom properties para el sistema de temas — se define la paleta una vez y todos los componentes la heredan. Los componentes son HTML puro, compatibles con HTMX y Alpine.js sin JS framework. Los prompts de diseño pueden usar nombres de componentes DaisyUI explícitos (`chat chat-start`, `badge badge-outline`, `menu menu-compact`) reduciendo ambigüedad tanto en mockups como en generación de código.
+
+### D53: Paleta de color VOID_ENGINE definitiva — dark theme only
+- **Contexto:** Múltiples iteraciones de mockup Stitch revelaron que descripciones de color ambiguas ("dark navy", glassmorphism) causaban resultados inconsistentes. Se necesitaba una paleta fija en hex sólidos.
+- **Opciones:** Glassmorphism con rgba y dos acentos (azul + cyan) — descartado por Image #15 (cyberpunk neon); charcoal sólido con acento único — validado en Image #13 y #16.
+- **Decisión:** DaisyUI theme custom: base-100=#0b0d14, base-200=#111522, base-300=#141824, border=#1f2535, primary=#5b7cff, success=#56d38a, warning=#d9a441, text-primary=#f4f7ff, text-muted=#8b9ec0.
+- **Por qué:** Hex sólidos eliminan el problema de compositing (rgba requiere que Stitch "invente" qué hay detrás del vidrio). Acento único evita que la herramienta use colores secundarios en lugares arbitrarios. El charcoal neutro (#0b0d14) no tiene tinte azul — eso fue el problema de Image #15.
+- **Descartado:** cyan #6fd3ff como acento secundario — causa resultado neon con herramientas de generación de UI.
+
+### D54: Estrategia de mockup Stitch — layout-first, luego diseño
+- **Contexto:** Después de 4+ iteraciones de prompt (v1–v4), los problemas de Stitch eran de dos tipos independientes: (1) layout incorrecto o contenido inventado, (2) colores/estilos incorrectos. Mezclarlos en un solo prompt produce fallos en ambas dimensiones simultáneamente.
+- **Opciones:** Seguir iterando prompt completo (estilo + layout), separar en dos fases (layout primero, luego estilos).
+- **Decisión:** Approach en dos fases: (1) `prompt_v1_layout.md` — sin estilos, solo estructura y copy exacto, valida que Stitch respete el layout de 3 columnas y el contenido correcto; (2) cuando el layout esté bloqueado, agregar encima la paleta DaisyUI.
+- **Por qué:** Un prompt corto (~400 palabras) enfocado solo en estructura da a Stitch menos superficie para reinterpretar. Una vez el layout es correcto, los estilos se pueden agregar sin riesgo de perder la estructura.

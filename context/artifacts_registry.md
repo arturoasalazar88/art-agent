@@ -1,6 +1,6 @@
 # Registro de Artefactos
 
-> Última actualización: 2026-04-29 (sesión 8)
+> Última actualización: 2026-04-30 (sesión 12)
 > Trigger de actualización: Cada vez que se crea, modifica o depreca un archivo.
 
 ---
@@ -41,6 +41,17 @@
 |---|---|---|---|
 | `outputs/` | ✅ Activo | 2026-04-24 | Directorio para artefactos producidos — código, scripts, configs, docs |
 | `outputs/workflow_map.md` | ✅ Activo | 2026-04-28 | Mapa completo de workflows creativos y de generación de assets. 9 workflows, todos los actores, matriz actor×workflow, catálogo de 16 contratos de handoff, gaps identificados. Fuente de verdad para diseño de plataforma. |
+| `outputs/agent_memory_spec.md` | ✅ Activo | 2026-04-30 | Especificación completa de agentes especializados y memoria atómica. 6 roles (modelo×rol), 10 bloques atómicos, presupuestos de tokens por rol, spec del Memory Compiler, Canonical State Manager, configuración de invocación, reglas por workflow. Input para STORY_017 y STORY_018. |
+| `context/stories/STORY_016_agentes_especializados.md` | ✅ Completado | 2026-04-30 | Story de diseño de agentes especializados + memoria atómica. Completada en sesión 11. |
+
+---
+
+## Inputs — Plataforma de Orquestación
+
+| Ruta | Estado | Fecha | Descripción |
+|---|---|---|---|
+| `inputs/adonisjs_assessment.md` | ✅ Activo | 2026-04-30 | Assessment completo AdonisJS 7.x — 15 secciones, estructura, controllers, services, validators, SSE/streaming LLM, filesystem, HTMX+Edge.js, Alpine.js, env, error handling, testing, routing, middleware, anti-patterns. Fuente de verdad para el harness del agente de código de la plataforma. |
+| `inputs/mocks/stitch-prompts/screen_01_main_workspace/prompt_v1_layout.md` | ✅ Activo | 2026-04-30 | Prompt Stitch layout-only para Screen 01 (Main Workspace). ~400 palabras, sin estilos, solo estructura de 3 columnas y copy exacto. Fase 1 del approach layout-first. Listo para enviar a Stitch. |
 
 ---
 

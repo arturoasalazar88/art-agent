@@ -1,6 +1,6 @@
 # Estado del Proyecto — Survival Horror Video Game
 
-> Última actualización: 2026-04-24
+> Última actualización: 2026-04-30
 > Trigger de actualización: Solo cuando equipo, alcance o metodología cambian.
 
 ---
@@ -13,7 +13,7 @@
 | Tipo | Videojuego survival horror — Unity + Unity MCP + Blender |
 | Director | Arturo Salazar |
 | Inicio | Abril 2026 |
-| Fase actual | Pre-producción — infraestructura validada, pipeline diseñado |
+| Fase actual | Pre-producción — infraestructura validada, agentes diseñados, plataforma VOID_ENGINE en construcción |
 
 ### Objetivo Estratégico
 
@@ -75,6 +75,7 @@ Construir un videojuego de survival horror con un pipeline de producción comple
 | Open WebUI | `http://10.1.0.105:3000` | 3000 | ✅ Operativo (Docker) |
 | ComfyUI | `http://10.1.0.105:8188` | 8188 | ✅ Operativo (systemd) |
 | MCP server | `http://10.1.0.105:8189` | 8189 | ⬜ Pendiente implementación |
+| VOID_ENGINE | `localhost:3333` (dev) | 3333 | 🔧 En diseño — plataforma web de orquestación |
 
 ### Switch de Modos
 
@@ -305,6 +306,9 @@ El orquestador técnico (Unity MCP) nunca recibe horror explícito en lenguaje n
 | IPAdapter | Nodo ComfyUI que usa imagen de referencia como guía visual |
 | MCP | Model Context Protocol — protocolo estándar para herramientas de agente |
 | FastMCP | Framework Python para implementar servidores MCP |
+| VOID_ENGINE | Plataforma web de orquestación del pipeline — AdonisJS 7.x + HTMX + Alpine.js + Tailwind + DaisyUI |
+| DaisyUI | Librería de componentes UI para Tailwind CSS — HTML puro, sistema de temas via CSS custom properties, compatible con HTMX |
+| HTMX | Librería JS que extiende HTML con atributos para partial page updates y SSE — reemplaza fetch/axios en el frontend |
 
 ---
 

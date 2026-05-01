@@ -1,6 +1,6 @@
 # Stories Index — Trabajo Pendiente
 
-> Última actualización: 2026-04-29
+> Última actualización: 2026-04-30
 > Trigger: Cada vez que se crea, actualiza o cierra una story.
 > Formato individual: `context/stories/STORY_XXX_nombre.md`
 
@@ -13,7 +13,7 @@
 
 | ID | Estado | Título | Depende de |
 |---|---|---|---|
-| STORY_016 | 🟡 | Diseño de agentes especializados + memoria atómica | STORY_001 |
+| STORY_016 | ✅ | Diseño de agentes especializados + memoria atómica | STORY_001 |
 | STORY_017 | ⬜ | Blueprint Compiler — Ornstein → SceneBlueprint sin arte | STORY_016 |
 | STORY_018 | ⬜ | Plataforma de orquestación — arquitectura general | STORY_001, STORY_016 |
 
