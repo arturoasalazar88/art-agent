@@ -47,6 +47,10 @@
 | `outputs/void_engine_layout_guide.md` | ✅ Activo | 2026-05-01 | Guía de layout de VOID_ENGINE. Define shell desktop 3 columnas, dimensiones, reglas de scroll, breakpoints, pantalla base Main Workspace y política de mocks on-demand. Fuente de verdad para layout de plataforma. |
 | `outputs/void_engine_ui_ux_guide.md` | ✅ Activo | 2026-05-01 | Guía UI/UX de VOID_ENGINE. Define principios visuales, paleta dark-only, tipografía, componentes, reglas de copy, UX por tarea y política de Gemini/Stitch como herramienta exploratoria de baja confianza. |
 | `context/stories/STORY_016_agentes_especializados.md` | ✅ Completado | 2026-04-30 | Story de diseño de agentes especializados + memoria atómica. Completada en sesión 11. |
+| `outputs/story019_validation_results.md` | ✅ Activo | 2026-04-30 | Resultados completos STORY_019 — métricas por test (SG-1/SG-2/TJ-1/TJ-2), highlights de output, hallazgos técnicos sobre max_tokens y thinking budget. |
+| `outputs/creative_models_production_config.md` | ✅ Activo | 2026-04-30 | Config de producción validada para SuperGemma y TrevorJS — comandos de arranque, parámetros de inferencia, system prompts, restricciones de hardware, tiempos esperados. |
+| `outputs/ornstein_validation_results.md` | ✅ Activo | 2026-04-30 | Resultados completos validación Ornstein — T1/T2/T3/T4, JSON outputs reales, diagnóstico de last_updated_turn, hallazgos técnicos. |
+| `outputs/ornstein_production_config.md` | ✅ Activo | 2026-04-30 | Config de producción Ornstein — comando arranque, parámetros, 4 system prompts por contrato, harness completo con Canonical State Pattern (código Python). |
 
 ---
 
@@ -91,7 +95,8 @@
 | `~/story001_harness_results/comparison.md` | ✅ Activo | Tabla antes vs después por test |
 | `~/story001_harness_results/production_rules.json` | ✅ Activo | Reglas validadas por rol — input para STORY_007 y STORY_016 |
 | `~/story019_suite.py` | 🔒 Histórico | Suite original — descartada, max_tokens=512 consumido por thinking, scorers regex frágiles |
-| `~/sg19_runner.py` | ✅ Activo | Runner individual por test — 4 tests cualitativos (sg1/sg2/tj1/tj2), reutilizable para futuros modelos |
+| `~/sg19_runner.py` | ✅ Activo | Runner individual por test SuperGemma/TrevorJS — 4 tests cualitativos (sg1/sg2/tj1/tj2) |
+| `~/orn_runner.py` | ✅ Activo | Runner individual por test Ornstein — 4 tests JSON (t1/t2/t3/t4), incluye extractor JSON y validación automática de criterios |
 | `~/story019_results/supergemma_results.json` | 🔒 Histórico | Resultados v1 sin raw output — no interpretar |
 | `~/story019_results/trevorjs_results.json` | 🔒 Histórico | Resultados v1 sin raw output — no interpretar |
 | `~/weaver_spec.txt` | ✅ Activo | Spec visual "The Weaver" generado por TrevorJS — input para TJ-2 y referencia de calidad |
