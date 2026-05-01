@@ -1,6 +1,6 @@
 # Estado del Proyecto — Survival Horror Video Game
 
-> Última actualización: 2026-04-30
+> Última actualización: 2026-05-01
 > Trigger de actualización: Solo cuando equipo, alcance o metodología cambian.
 
 ---
@@ -201,6 +201,9 @@ La regla fundamental del proyecto. El contenido creativo (lore, prompts, gore) l
 
 ### Context Engineering
 Agente con memoria persistente basada en archivos. Memoria separada en estable (`project_state.md`) y volátil (`next_steps.md`). Decisiones comprimidas en `conversation_memory.md`. Artefactos registrados en `artifacts_registry.md`. Skills de sesión para automatizar carga y guardado.
+
+### VOID_ENGINE Design Workflow
+La plataforma VOID_ENGINE se diseña desde guías propias y se implementa directamente en código. Los mocks generales generados con Gemini/Stitch quedan deprecados como fuente de verdad porque no respetan copy, workflows ni estructura exacta. Las pantallas se diseñan on demand usando `outputs/void_engine_layout_guide.md` y `outputs/void_engine_ui_ux_guide.md`; Stitch/Gemini puede usarse solo como exploración visual no vinculante.
 
 ### Pipeline de 5 Fases
 1. **Novelización mutable** — SuperGemma genera fragmentos crudos; Ornstein estructura capítulos y canon

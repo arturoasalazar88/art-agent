@@ -1,6 +1,6 @@
 # Foco de Sesión
 
-> Última actualización: 2026-04-30 (sesión 12)
+> Última actualización: 2026-05-01 (sesión 13)
 > Nota: Las listas de tareas y trabajo pendiente están en `context/stories/INDEX.md`.
 > Este archivo contiene solo el contexto de sesión: qué acaba de pasar y restricciones técnicas críticas.
 
@@ -20,8 +20,11 @@
 - [x] Paleta de color VOID_ENGINE definida — charcoal sólido + acento único #5b7cff
 - [x] Múltiples iteraciones de mockup Stitch — Image #13 mejor resultado previo, Image #16 cercano con DaisyUI prompt
 - [x] Auditoría del prompt Stitch v3 — 7 problemas identificados y documentados
-- [x] Enfoque cambiado a layout-first — `prompt_v1_layout.md` creado, sin estilos, solo estructura y copy exacto
+- [x] Enfoque layout-first con Stitch probado y superseded — la serie de prompts fue eliminada tras confirmar baja confiabilidad
 - [x] AdonisJS 7.x assessment completado — `inputs/adonisjs_assessment.md` disponible como referencia técnica
+- [x] Stitch/Gemini deprecado como fuente de verdad para pantallas exactas — 4 iteraciones confirmaron baja confiabilidad en copy/layout
+- [x] Guías base de VOID_ENGINE creadas — `outputs/void_engine_layout_guide.md` y `outputs/void_engine_ui_ux_guide.md`
+- [x] Prompts Stitch de Screen 01 eliminados por permiso explícito del usuario
 
 ---
 
@@ -33,14 +36,14 @@
 - **ComfyUI y llama-server:** nunca simultáneos — usar `~/switch-model.sh`
 - **VOID_ENGINE stack:** AdonisJS 7.x + HTMX + Alpine.js + Tailwind CSS + DaisyUI
 - **DaisyUI theme custom:** base-100=#0b0d14, base-200=#111522, base-300=#141824, primary=#5b7cff, success=#56d38a, warning=#d9a441
-- **Mejor mockup base:** Image #16 (DaisyUI prompt) — layout casi correcto, faltan 4 fixes de contenido
-- **Stitch lecciones aprendidas:** (1) layout-first sin estilos, (2) copy exacto en el prompt, (3) hex sólidos sin rgba, (4) un solo acento, (5) adjuntar imagen de referencia
+- **VOID_ENGINE diseño:** guías propias son fuente de verdad — `outputs/void_engine_layout_guide.md` y `outputs/void_engine_ui_ux_guide.md`
+- **Gemini/Stitch:** herramienta exploratoria visual de baja confianza; no usar para copy exacto, workflows, layout final ni mocks generales
 
 ---
 
 ## Próximos Pasos (por prioridad)
 
-1. **VOID_ENGINE mockup** — enviar `prompt_v1_layout.md` a Stitch para validar layout, luego agregar estilos encima
+1. **VOID_ENGINE implementación base** — construir shell desktop 3 columnas desde las guías propias, no desde Stitch
 2. **STORY_019** — validar SuperGemma y TrevorJS (re-descargar modelos primero)
 3. **STORY_018** — arquitectura de orquestación VOID_ENGINE (depende de STORY_016 ✅)
 4. **STORY_017** — Blueprint Compiler (~150 líneas Python, depende de STORY_016 ✅)
@@ -51,5 +54,4 @@
 ## Preguntas para el Usuario al Inicio de Sesión
 
 - ¿Hubo cambios en el servidor desde la última sesión?
-- ¿Cuál fue el resultado del research de Perplexity sobre Stitch?
-- ¿Empezamos con el mockup de layout (Stitch) o con el scaffolding del proyecto AdonisJS?
+- ¿Empezamos con el shell base de VOID_ENGINE en AdonisJS/Tailwind o con arquitectura STORY_018?

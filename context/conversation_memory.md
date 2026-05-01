@@ -1,6 +1,6 @@
 # Memoria de Conversación — Log de Decisiones
 
-> Última actualización: 2026-04-30 (sesión 12 — D54)
+> Última actualización: 2026-05-01 (sesión 13 — D55)
 > Formato: Cronológico, comprimido. Decisiones y su WHY, no transcripción.
 > Trigger de actualización: Después de cada sesión donde se toma una decisión significativa.
 
@@ -374,3 +374,15 @@
 - **Opciones:** Seguir iterando prompt completo (estilo + layout), separar en dos fases (layout primero, luego estilos).
 - **Decisión:** Approach en dos fases: (1) `prompt_v1_layout.md` — sin estilos, solo estructura y copy exacto, valida que Stitch respete el layout de 3 columnas y el contenido correcto; (2) cuando el layout esté bloqueado, agregar encima la paleta DaisyUI.
 - **Por qué:** Un prompt corto (~400 palabras) enfocado solo en estructura da a Stitch menos superficie para reinterpretar. Una vez el layout es correcto, los estilos se pueden agregar sin riesgo de perder la estructura.
+
+---
+
+## 2026-05-01 — Sesión 13: VOID_ENGINE Design Guides + Stitch Deprecation
+
+### D55: Gemini/Stitch degradado a herramienta exploratoria — diseño on demand con guías propias
+- **Contexto:** Se probaron cuatro prompts para Screen 01 de VOID_ENGINE (`prompt_v1_layout`, `prompt_v2_layout_fix`, `prompt_v3_text_lock`, `prompt_v4_low_trust_renderer`). Aunque algunos outputs capturaron dirección visual general, Gemini/Stitch siguió inventando workflows, labels, navegación lateral, speaker labels, version/build text y cambios de copy a pesar de reglas explícitas.
+- **Opciones:** Seguir iterando prompts de Stitch, usar Stitch solo como moodboard exploratorio, o abandonar mocks generales y diseñar directamente desde guías propias en código.
+- **Decisión:** Abandonar mocks generales de pantallas en Stitch. VOID_ENGINE usará guías propias de layout y UI/UX como fuente de verdad; las pantallas se diseñarán on demand según el flujo real y se implementarán directamente en AdonisJS/Tailwind/DaisyUI. Gemini/Stitch queda clasificado como herramienta exploratoria visual de baja confianza.
+- **Por qué:** La plataforma necesita copy exacto, workflows controlados y layouts reproducibles. Stitch no puede garantizar fidelidad textual ni estructural. El código sí permite controlar datos, componentes, estados y comportamiento.
+- **Descartado:** Prompt engineering adicional para Stitch como fuente de verdad de layout/copy; cuatro iteraciones demostraron que el costo marginal supera el valor.
+- **Artefactos derivados:** `outputs/void_engine_layout_guide.md` y `outputs/void_engine_ui_ux_guide.md`.

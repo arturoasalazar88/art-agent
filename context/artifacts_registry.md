@@ -1,6 +1,6 @@
 # Registro de Artefactos
 
-> Última actualización: 2026-04-30 (sesión 12)
+> Última actualización: 2026-05-01 (sesión 13)
 > Trigger de actualización: Cada vez que se crea, modifica o depreca un archivo.
 
 ---
@@ -42,6 +42,8 @@
 | `outputs/` | ✅ Activo | 2026-04-24 | Directorio para artefactos producidos — código, scripts, configs, docs |
 | `outputs/workflow_map.md` | ✅ Activo | 2026-04-28 | Mapa completo de workflows creativos y de generación de assets. 9 workflows, todos los actores, matriz actor×workflow, catálogo de 16 contratos de handoff, gaps identificados. Fuente de verdad para diseño de plataforma. |
 | `outputs/agent_memory_spec.md` | ✅ Activo | 2026-04-30 | Especificación completa de agentes especializados y memoria atómica. 6 roles (modelo×rol), 10 bloques atómicos, presupuestos de tokens por rol, spec del Memory Compiler, Canonical State Manager, configuración de invocación, reglas por workflow. Input para STORY_017 y STORY_018. |
+| `outputs/void_engine_layout_guide.md` | ✅ Activo | 2026-05-01 | Guía de layout de VOID_ENGINE. Define shell desktop 3 columnas, dimensiones, reglas de scroll, breakpoints, pantalla base Main Workspace y política de mocks on-demand. Fuente de verdad para layout de plataforma. |
+| `outputs/void_engine_ui_ux_guide.md` | ✅ Activo | 2026-05-01 | Guía UI/UX de VOID_ENGINE. Define principios visuales, paleta dark-only, tipografía, componentes, reglas de copy, UX por tarea y política de Gemini/Stitch como herramienta exploratoria de baja confianza. |
 | `context/stories/STORY_016_agentes_especializados.md` | ✅ Completado | 2026-04-30 | Story de diseño de agentes especializados + memoria atómica. Completada en sesión 11. |
 
 ---
@@ -51,7 +53,10 @@
 | Ruta | Estado | Fecha | Descripción |
 |---|---|---|---|
 | `inputs/adonisjs_assessment.md` | ✅ Activo | 2026-04-30 | Assessment completo AdonisJS 7.x — 15 secciones, estructura, controllers, services, validators, SSE/streaming LLM, filesystem, HTMX+Edge.js, Alpine.js, env, error handling, testing, routing, middleware, anti-patterns. Fuente de verdad para el harness del agente de código de la plataforma. |
-| `inputs/mocks/stitch-prompts/screen_01_main_workspace/prompt_v1_layout.md` | ✅ Activo | 2026-04-30 | Prompt Stitch layout-only para Screen 01 (Main Workspace). ~400 palabras, sin estilos, solo estructura de 3 columnas y copy exacto. Fase 1 del approach layout-first. Listo para enviar a Stitch. |
+| `inputs/mocks/stitch-prompts/screen_01_main_workspace/prompt_v1_layout.md` | 🚫 Eliminado | 2026-05-01 | Prompt Stitch layout-only para Screen 01. Eliminado por decisión de abandonar mocks generales en Stitch y pasar a guías de layout/UI on-demand. |
+| `inputs/mocks/stitch-prompts/screen_01_main_workspace/prompt_v2_layout_fix.md` | 🚫 Eliminado | 2026-05-01 | Prompt Stitch v2 para Screen 01. Eliminado junto con la serie de prompts por baja confiabilidad de Gemini/Stitch para copy/layout exactos. |
+| `inputs/mocks/stitch-prompts/screen_01_main_workspace/prompt_v3_text_lock.md` | 🚫 Eliminado | 2026-05-01 | Prompt Stitch v3 para Screen 01. Eliminado junto con la serie de prompts; la estrategia text-lock no impidió alucinaciones estructurales. |
+| `inputs/mocks/stitch-prompts/screen_01_main_workspace/prompt_v4_low_trust_renderer.md` | 🚫 Eliminado | 2026-05-01 | Prompt Stitch v4 para Screen 01. Eliminado junto con la serie de prompts; la estrategia low-trust confirmó que Stitch no es fuente confiable para pantallas exactas. |
 
 ---
 
