@@ -1,6 +1,6 @@
 # Stories Index — Trabajo Pendiente
 
-> Última actualización: 2026-04-30 (sesión 14)
+> Última actualización: 2026-05-02 (sesión 21)
 > Trigger: Cada vez que se crea, actualiza o cierra una story.
 > Formato individual: `context/stories/STORY_XXX_nombre.md`
 
@@ -27,9 +27,17 @@
 | STORY_019 | ✅ | Validación modelos creativos — SuperGemma y TrevorJS (4 tests cualitativos, 4/4 PASS a ctx=24576) | STORY_001 |
 | STORY_020 | ✅ | Agent Harness — sistema de reglas por rol + re-run 14 tests con harness | STORY_001 |
 | STORY_021 | ✅ | Validación Qwen3.6-35B-A3B — ctx=32k, 4 tests × 5 sizes, PASS perfecto | STORY_001 |
+| STORY_022 | ✅ | Servicios systemd completos: fix Ornstein thinking + crear qwen3 + reescribir switch-model.sh; vision bloqueado por falta de GGUF/mmproj | STORY_001, STORY_021 |
+| STORY_023 | ✅ | Validación Huihui-Qwen3.5-35B-A3B: no reemplaza Qwen3.6 en ingeniería; adoptado como Vision vía mmproj | STORY_021, STORY_022 |
+| STORY_024 | ✅ | Activar Vision en Open WebUI — superado por STORY_027. SuperGemma4 Vision adoptado y validado. Huihui Vision eliminado. | STORY_023, STORY_027 |
+| STORY_027 | ✅ | Vision Upgrade — SuperGemma4-26B-abliterated-multimodal adoptado. UAT PASS. Thinking OFF (llama.cpp b8998 limitación). | STORY_023 ✅ |
+| STORY_028 | ✅ | Huihui Claude 4.7 "Sage" — UAT 5/5 PASS. Adoptado como `sage` en switch-model.sh (puerto 8012, ctx=32768). Pendiente: eliminar Qwen3 si usuario confirma. | STORY_025 ✅ |
+| STORY_029 | 🔴 | MoE Large (57B–122B) — validar modelos de mayor escala con 64GB RAM | RAM 64GB |
+| STORY_025 | ✅ | Huihui sin mmproj ctx=32768: T1/T2 PASS, UAT-3 conversacional PASS — production-ready para razonamiento (velocidad UAT aceptable) | STORY_023 |
 | STORY_002 | ⬜ | MCP server — implementación FastMCP, 7 herramientas, puerto 8189 | STORY_001 |
 | STORY_003 | ⬜ | Estructura ~/horror-game/ en servidor Debian | — |
 | STORY_004 | 🔬 | Investigar Unity MCP — compatibilidad con pipeline local | — |
+| STORY_026 | ✅ | Open WebUI: Web Search (SearXNG) activado y validado en UAT — RAG de URL pendiente verificar | — |
 
 ---
 

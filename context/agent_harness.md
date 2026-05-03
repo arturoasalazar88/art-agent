@@ -307,3 +307,102 @@ REGLAS ABSOLUTAS:
 | Sin ceros en safety-critical | N2, N3, N5, W4, W5, V2, V4 ≥ 1 | ✓ todos al 4.0 |
 | Weighted avg ≥ 3.5 | Safety-critical peso 2x | ✓ 4.0 |
 | pass@5 ≥ 80% en tests de 3 turnos | N4, W2, V3 | ✓ 100% |
+
+---
+
+## Harness — Huihui-Qwen3.5-35B-A3B (texto puro, sin mmproj)
+
+> Modelo: `Huihui-Qwen3.5-35B-A3B-Claude-4.6-Opus-abliterated-Q4_K_M.gguf`
+> Puerto: 8012 (modo texto puro, sin `--mmproj`)
+> Validado en: sesión 20 — 3 tests UAT en Open WebUI: lógica, arquitectura, multi-turn
+> Rol: razonamiento conversacional largo uncensored — análisis narrativo, arquitectura, diseño
+> Estado: ✅ **PRODUCTION-READY** — aprobado por UAT conversacional (velocidad de benchmark sintético no aplica para este rol)
+
+### Reglas de producción
+
+```python
+HUIHUI_RULES = {
+    "thinking": True,           # SIEMPRE ON — modelo destilado Claude Opus, thinking es su fortaleza
+    "temperature": 0.3,         # balance entre determinismo y creatividad
+    "max_tokens": 2048,         # mínimo — con thinking ON el modelo consume budget antes de responder
+    "language_enforcement": True,  # forzar español via system prompt (ver abajo)
+    "ctx_size": 32768,          # OBLIGATORIO — ctx inferior no es aceptable para inferencia
+}
+```
+
+> ⚠️ **Regla de contexto:** el servidor debe arrancar con `--ctx-size 32768` como mínimo. Arranques con ctx menor (ej. 4096 con mmproj) no son válidos para inferencia de producción con este modelo en rol de razonamiento.
+
+### Regla crítica: thinking siempre ON
+
+A diferencia de Ornstein (thinking OFF para JSON), Huihui **requiere** thinking ON:
+- `enable_thinking=false` no es confiable — puede devolver `content=""` consumiendo todo en `reasoning_content`
+- El thinking es la fuente del razonamiento de calidad observado en las pruebas
+- Con `max_tokens=512` el modelo agota el budget en thinking y no produce content — usar **mínimo 2048**
+
+### Forzar salida en español
+
+El modelo puede code-switch a portugués o inglés en respuestas técnicas. Mitigación via system prompt:
+
+```python
+HUIHUI_SYSTEM_PROMPT = """Eres un asistente de desarrollo de videojuegos.
+
+REGLA ABSOLUTA DE IDIOMA: Responde SIEMPRE en español, sin excepción.
+Esto incluye código comentado, nombres de variables en explicaciones, diagramas y ejemplos.
+Si el input está en otro idioma, responde igualmente en español.
+"""
+```
+
+Incluir este system prompt en **todos** los requests a Huihui, independientemente de la tarea.
+
+### Config de inferencia por tipo de tarea
+
+```python
+# Razonamiento / análisis (conversación Open WebUI, diseño)
+huihui_reasoning = {
+    "system": HUIHUI_SYSTEM_PROMPT,
+    "chat_template_kwargs": {"enable_thinking": True},
+    "temperature": 0.3,
+    "max_tokens": 2048,
+}
+
+# Respuestas largas (arquitectura, documentación, diseño detallado)
+huihui_long = {
+    "system": HUIHUI_SYSTEM_PROMPT,
+    "chat_template_kwargs": {"enable_thinking": True},
+    "temperature": 0.3,
+    "max_tokens": 4096,
+}
+```
+
+### Resultados UAT (criterio de aceptación para producción)
+
+| Test | Thinking | Resultado | Observaciones |
+|---|---|---|---|
+| UAT-1 — Lógica (cajas mal etiquetadas) | 24s | ✅ PASS | Respuesta correcta al 100%, ambos escenarios A/B, español limpio |
+| UAT-2 — Arquitectura (inventario videojuego) | 29s | ✅ PASS | TypeScript completo, 7 edge cases, serialización con versionamiento, diagrama ASCII |
+| UAT-3 — Multi-turn estado (adivinanza binaria) | 8–15s | ✅ PASS | Búsqueda binaria óptima, estado del rango preservado entre turnos, árbol de decisión proyectado |
+
+> **Nota de velocidad:** la latencia de thinking (8–29s) es aceptable para razonamiento conversacional en Open WebUI. El benchmark sintético de STORY_025 (12–75s por request API) no es el criterio correcto para este rol — el UAT conversacional sí lo es.
+
+### Limitaciones conocidas
+
+| Limitación | Descripción | Mitigación |
+|---|---|---|
+| Latencia alta en benchmark | T1 4k: ~12s vs ~1.9s de Qwen3.6 | No usar en pipelines encadenados — solo tareas conversacionales |
+| Code-switch de idioma | Responde en portugués/inglés en prompts técnicos | System prompt con enforcement explícito (ver arriba) |
+| ctx=4096 con mmproj | Si se carga el mmproj (modo visión), ctx se reduce a 4096 | Sin mmproj: ctx=32768 disponible |
+| No reemplaza Qwen3.6 | Velocidad insuficiente para ingeniería/codegen de pipeline | Mantener separación de roles |
+
+### Roles apropiados
+
+✅ Usar Huihui para:
+- Razonamiento narrativo largo (análisis de lore, estructura de historia)
+- Diseño de arquitecturas técnicas en conversación (Open WebUI)
+- Análisis de decisiones de diseño con múltiples trade-offs
+- Cualquier tarea donde la profundidad de razonamiento importa más que la velocidad
+
+🚫 No usar Huihui para:
+- Pipelines encadenados (latencia 6–16× mayor que Qwen3.6)
+- Extracción JSON automatizada (usar Ornstein o Qwen3.6)
+- Generación de código en pipeline (usar Qwen3.6 en puerto 8013)
+- Análisis de imágenes sin mmproj (cargar con mmproj en ese caso)

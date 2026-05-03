@@ -10,6 +10,7 @@
 | Campo | Valor |
 |---|---|
 | Nombre | Survival Horror Video Game |
+| Estudio | DArkkercornner Studios |
 | Tipo | Videojuego survival horror — Unity + Unity MCP + Blender |
 | Director | Arturo Salazar |
 | Inicio | Abril 2026 |
@@ -38,13 +39,14 @@ Construir un videojuego de survival horror con un pipeline de producción comple
 
 ### Modelos Locales LLM — Actores Creativos
 
-| Alias | Modelo GGUF | Servicio systemd | Rol |
-|---|---|---|---|
-| Ornstein | Ornstein-26B-A4B-it-Q4_K_M.gguf | llama-ornstein | Estructura narrativa, prompts limpios, briefs técnicos, fichas 3D |
-| SuperGemma | supergemma4-26b-uncensored-fast-v2-Q4_K_M.gguf | llama-supergemma | Ideación libre, escenas crudas, diálogo oscuro, lore, criaturas |
-| TrevorJS | gemma-4-26B-A4B-it-uncensored-Q4_K_M.gguf | llama-trevorjs | Grotesco visual, horror corporal, prompts visuales extremos |
-| SuperGemma Vision | supergemma4-26b-abliterated-multimodal-Q4_K_M.gguf + mmproj | llama-vision | Análisis de imágenes de referencia (composición, paleta, mood) |
-| Qwen3 | Qwen3-235B-A22B-Q4_K_M.gguf (MoE, 3B activos/token) | llama-qwen3 (⬜ pendiente) | Ingeniería: codegen, tool calls MCP, orquestación VOID_ENGINE |
+| Alias | Modelo GGUF | Servicio systemd | Rol | Thinking |
+|---|---|---|---|---|
+| Ornstein | Ornstein-26B-A4B-it-Q4_K_M.gguf | llama-ornstein | Estructura narrativa, prompts limpios, briefs técnicos, fichas 3D | ❌ OFF (forzado via wrapper) |
+| SuperGemma | supergemma4-26b-uncensored-fast-v2-Q4_K_M.gguf | llama-supergemma | Ideación libre, escenas crudas, diálogo oscuro, lore, criaturas | ✅ ON |
+| TrevorJS | gemma-4-26B-A4B-it-uncensored-Q4_K_M.gguf | llama-trevorjs | Grotesco visual, horror corporal, prompts visuales extremos | ✅ ON |
+| supergemma4-vision | supergemma4-26b-abliterated-multimodal-Q4_K_M.gguf + mmproj-f16 | llama-vision | Análisis visual art direction — composición, paleta, iluminación, texturas, mood. Validado en sesión 22 (STORY_027). | ❌ OFF (llama.cpp b8998 no parsea channel markers de Gemma 4 multimodal) |
+| Qwen3 | Qwen3.6-35B-A3B-Q4_K_M.gguf (MoE, 3B activos/token) | llama-qwen3 ✅ | Ingeniería: codegen, tool calls MCP, orquestación VOID_ENGINE (pipeline encadenado, JSON rápido) | ✅ ON (codegen) / ❌ OFF (JSON/tool calls) |
+| Sage | Huihui-Qwen3.6-35B-A3B-Claude-4.7-Opus-abliterated-Q4_K_M.gguf (MoE, 3B activos/token) | llama-huihui47 ✅ | Razonamiento conversacional uncensored — diseño de sistemas, análisis narrativo, decisiones de arquitectura, multi-turn largo en Open WebUI. ctx=32768. | ✅ ON (min max_tokens=3000) |
 
 ### ComfyUI — Generación de Imágenes
 - Checkpoint: Pony Diffusion V6 XL
@@ -72,22 +74,25 @@ Construir un videojuego de survival horror con un pipeline de producción comple
 
 | Servicio | URL | Puerto | Estado |
 |---|---|---|---|
-| llama-server (creativos) | `http://10.1.0.105:8012` | 8012 | ✅ Operativo (Ornstein/SuperGemma/TrevorJS/Vision) |
-| llama-server (ingeniería) | `http://10.1.0.105:8013` | 8013 | ⬜ Manual — Qwen3 (pendiente systemd) |
+| llama-server (creativos + visión) | `http://10.1.0.105:8012` | 8012 | ✅ Operativo (Ornstein/SuperGemma/TrevorJS/supergemma4-vision) |
+| llama-server (ingeniería) | `http://10.1.0.105:8013` | 8013 | ✅ Operativo — Qwen3.6-35B-A3B vía llama-qwen3.service |
 | Open WebUI | `http://10.1.0.105:3000` | 3000 | ✅ Operativo (Docker) |
 | ComfyUI | `http://10.1.0.105:8188` | 8188 | ✅ Operativo (systemd) |
+| SearXNG | `http://10.1.0.105:8080` | 8080 | ✅ Operativo (Docker, --restart unless-stopped) |
 | MCP server | `http://10.1.0.105:8189` | 8189 | ⬜ Pendiente implementación |
 | VOID_ENGINE | `localhost:3333` (dev) | 3333 | 🔧 En diseño — plataforma web de orquestación |
 
 ### Switch de Modos
 
 ```bash
-~/switch-model.sh ornstein    # LLM estructura y briefs
+~/switch-model.sh ornstein    # LLM estructura y briefs (thinking=OFF via wrapper)
 ~/switch-model.sh supergemma  # LLM creatividad horror crudo
 ~/switch-model.sh trevorjs    # LLM grotesco visual uncensored
-~/switch-model.sh vision      # Multimodal análisis de imágenes
+~/switch-model.sh vision      # SuperGemma4 Vision multimodal (con mmproj, ctx=8192, thinking OFF)
+~/switch-model.sh sage        # Sage (Huihui 4.7) — razonamiento conversacional uncensored, ctx=32768
+~/switch-model.sh qwen3       # LLM ingeniería — codegen, MCP, orquestación (puerto 8013)
 ~/switch-model.sh image       # ComfyUI generación de imágenes
-~/switch-model.sh             # muestra estado actual de todos
+~/switch-model.sh             # muestra estado actual de todos los servicios
 ```
 
 ### Preset Base LLM (todos los servicios)
@@ -120,13 +125,14 @@ Construir un videojuego de survival horror con un pipeline de producción comple
 > `--n-cpu-moe 99`: expertos MoE se ejecutan en RAM — permite 35B+ en 12GB GPU
 > `--cache-type-k q8_0 --cache-type-v q8_0`: KV cache comprimido para 40k ctx en 12GB
 
-### Preset Vision (supergemma-vision)
+### Preset Vision (SuperGemma4 Vision)
 
 ```
---ctx-size 4096 --override-tensor ".*=CPU"
+--ctx-size 8192 --n-gpu-layers 999 --n-cpu-moe 12 --override-tensor ".*=CPU"
+--flash-attn on --jinja --chat-template-kwargs '{"enable_thinking":false}'
 ```
 
-Nota: `--mmproj-use-cpu` no existe en este build. Se usa `--override-tensor ".*=CPU"` como alternativa para forzar el mmproj a RAM.
+Nota: `--override-tensor ".*=CPU"` fuerza el mmproj a RAM (igual que Huihui Vision). Thinking OFF obligatorio — llama.cpp b8998 no parsea los channel markers de Gemma 4 multimodal y los emite como `|` en el output. Desde sesión 22, el backend activo de `llama-vision.service` es SuperGemma4 Vision.
 
 ### Rutas Importantes en Servidor
 
@@ -135,7 +141,8 @@ Nota: `--mmproj-use-cpu` no existe en este build. Se usa `--override-tensor ".*=
 | `~/llama.cpp/build/bin/llama-server` | Binario llama.cpp |
 | `~/models/gemma4/` | Modelos LLM (Ornstein, SuperGemma, TrevorJS) |
 | `~/models/qwen3/` | Modelo Qwen3 (ingeniería/codegen) |
-| `~/models/multimodal/` | Modelo vision + mmproj |
+| `~/models/huihui47/` | Sage — Huihui Claude 4.7 Q4_K_M (21.3 GB) |
+| `~/models/supergemma4-vision/` | SuperGemma4 Vision — GGUF Q4_K_M + mmproj F16 + chat_template.jinja |
 | `~/ComfyUI/` | Entorno ComfyUI completo |
 | `~/ComfyUI/models/checkpoints/` | Pony Diffusion V6 XL |
 | `~/ComfyUI/models/vae/` | sdxl_vae.safetensors |
@@ -151,8 +158,9 @@ Nota: `--mmproj-use-cpu` no existe en este build. Se usa `--override-tensor ".*=
 | llama-ornstein | `/etc/systemd/system/llama-ornstein.service` |
 | llama-supergemma | `/etc/systemd/system/llama-supergemma.service` |
 | llama-trevorjs | `/etc/systemd/system/llama-trevorjs.service` |
-| llama-vision | `/etc/systemd/system/llama-vision.service` |
-| llama-qwen3 | `/etc/systemd/system/llama-qwen3.service` — ⬜ pendiente creación |
+| llama-vision | `/etc/systemd/system/llama-vision.service` — SuperGemma4 Vision (validado sesión 22) |
+| llama-qwen3 | `/etc/systemd/system/llama-qwen3.service` — ✅ creado en STORY_022 |
+| llama-huihui47 | `/etc/systemd/system/llama-huihui47.service` — ✅ creado en STORY_028. Alias `sage` en switch-model.sh |
 | comfyui | `/etc/systemd/system/comfyui.service` |
 
 ---
@@ -310,12 +318,13 @@ El orquestador técnico (Unity MCP) nunca recibe horror explícito en lenguaje n
 | Ornstein | Modelo LLM Gemma 4 26B para estructura y briefs técnicos |
 | SuperGemma | Modelo LLM uncensored para ideación horror cruda |
 | TrevorJS | Modelo LLM uncensored para grotesco visual |
-| SuperGemma Vision | Modelo multimodal para análisis de imágenes |
+| Sage | Modelo LLM razonamiento conversacional uncensored — Huihui Claude 4.7 (Qwen3.6-35B-A3B destilado de Opus 4.7, abliterado). Switch: `sage`, puerto 8012, ctx=32768 |
+| Huihui Vision | Modelo multimodal para análisis de imágenes, activo en `llama-vision.service` |
 | Pony Diffusion | Checkpoint SDXL para generación de imágenes en ComfyUI |
 | LoRA | Adaptador de bajo rango — modifica estilo del modelo base |
 | mmproj | Vision encoder — archivo separado que habilita procesamiento de imágenes |
 | abliterated | Modelo al que se le removieron pesos de rechazo (uncensored) |
-| Qwen3 | Modelo LLM MoE de Alibaba — 235B total, 22B activos — rol de ingeniería en el stack |
+| Qwen3 | Modelo LLM MoE Qwen3.6-35B-A3B — rol de ingeniería en el stack |
 | MoE | Mixture of Experts — arquitectura donde solo parte de los parámetros se activan |
 | KV cache | Caché de key-value en VRAM — determina el tamaño de contexto posible |
 | ctx-size | Tamaño de ventana de contexto en tokens |
@@ -335,7 +344,7 @@ El orquestador técnico (Unity MCP) nunca recibe horror explícito en lenguaje n
 
 ## Decisión: Visión No Necesita Ser Uncensored
 
-La censura solo importa en la etapa de generación del prompt, no en el análisis visual. SuperGemma Vision describe lo que ve sin necesitar ser uncensored porque su output es una descripción técnica (composición, paleta, mood), no contenido explícito. El contenido explícito lo genera SuperGemma/TrevorJS en el paso siguiente.
+La censura solo importa en la etapa de generación del prompt, no en el análisis visual. Huihui Vision describe lo que ve como descripción técnica (composición, paleta, mood), no como contenido creativo. El contenido explícito lo genera SuperGemma/TrevorJS en el paso siguiente.
 
 Modelos descartados para visión uncensored:
 - Gemma 3 12B abliterated: mmproj no funciona correctamente con llama.cpp + Open WebUI

@@ -1,6 +1,6 @@
 # Memoria de Conversación — Log de Decisiones
 
-> Última actualización: 2026-04-30 (sesión 14 — D65)
+> Última actualización: 2026-05-02 (sesión 23 — D88)
 > Formato: Cronológico, comprimido. Decisiones y su WHY, no transcripción.
 > Trigger de actualización: Después de cada sesión donde se toma una decisión significativa.
 
@@ -487,3 +487,184 @@
   - Ornstein: thinking OFF, temperature=0, max_tokens=1024, harness Canonical State
   - SuperGemma: thinking ON, temperature=0.85, max_tokens=4096
   - TrevorJS: thinking ON, temperature=0.85, max_tokens=4096
+
+---
+
+## 2026-05-01 — Sesión 17: Systemd + Búsqueda de Modelo Visión/Ingeniería
+
+### D71: Huihui-Qwen3.5-35B-A3B adoptado para visión, no para ingeniería
+- **Contexto:** STORY_023 validó `Huihui-Qwen3.5-35B-A3B-Claude-4.6-Opus-abliterated-Q4_K_M` como posible reemplazo de Qwen3.6 y como solución al bloqueo de visión de STORY_022. Se descargaron el GGUF principal (20GB) y el mmproj (858MB). El build `llama.cpp b8998-2098fd616` cargó correctamente la arquitectura `qwen35moe`.
+- **Opciones:** Escenario A (reemplaza Qwen3.6 y cubre visión), B (reemplaza ingeniería pero visión falla), C (arquitectura no soportada), D/parcial (usable con limitaciones), o adopción solo para visión.
+- **Decisión:** No reemplazar Qwen3.6 como modelo de ingeniería. Adoptar Huihui solo como modelo de visión mediante `llama-vision.service`.
+- **Por qué:** Huihui pasó T1/T2/T3/T4 en precisión hasta 32k, pero falló requisitos operativos de ingeniería: T1 4k thinking=OFF tardó 19.137s vs referencia Qwen3.6 de 1.9s, T1 32k tardó 133.600s vs 52s, y `chat_template_kwargs.enable_thinking=false` no fue confiable en request simple (contenido vacío y razonamiento en `reasoning_content`). En visión, el mmproj arrancó sin OOM y produjo descripción coherente con `max_tokens=2048`.
+- **Impacto:** Qwen3.6 sigue como modelo de ingeniería/codegen en `llama-qwen3.service` puerto 8013. Huihui queda como backend de `llama-vision.service` puerto 8012 con `/home/asalazar/start-huihui-vision.sh`. El bloqueo de visión de STORY_022 queda resuelto sin cambiar el rol de ingeniería.
+
+### D72: Qwopus-MoE-35B-A3B descartado
+- **Contexto:** Candidato MoE con destilado de Opus encontrado en evaluación paralela a Huihui.
+- **Decisión:** Descartado. No se crea story de validación.
+- **Por qué:** Mismo linaje (Qwen3.5-35B-A3B + Opus distill) que Huihui pero sin abliterar (refusals para contenido horror no documentados) y sin mmproj (no cubre el rol de visión). Huihui es estrictamente superior en los dos criterios que importan para este proyecto.
+
+### D73: Modelos densos Qwen3.6-27B descartados para rol de ingeniería
+- **Contexto:** La búsqueda inicial de visión uncensored encontró dos modelos multimodales válidos (HauhauCS Balanced y Heretic v2), pero ambos son 27B densos con Q4_K_M de 16.5GB.
+- **Opciones:** HauhauCS (0/465 refusals, mmproj, pero "Balanced" puede añadir disclaimers), Heretic v2 (MPOA documentado, KL=0.0021, 6/100 refusals, mmproj).
+- **Decisión:** Descartados para el rol de ingeniería. Podrían usarse para visión con partial offload (GPU+CPU), pero Huihui es superior al combinar ambos roles.
+- **Por qué:** 27B denso requiere partial GPU offload (16.5GB > 12GB VRAM) — significativamente más lento que MoE donde solo ~3B parámetros están activos. Para ingeniería donde T1 JSON debe ser ~1.9s, un modelo denso con partial offload sería 10-20x más lento. Heretic v2 queda como alternativa de respaldo si STORY_023 falla en visión y se necesita solo un modelo multimodal.
+
+---
+
+## 2026-05-02 — Sesión 19: STORY_024 Huihui Vision + Open WebUI
+
+### D74: Huihui Vision se opera con always thinking y max_tokens >= 2048
+- **Contexto:** Durante STORY_024 el usuario corrigió explícitamente que Huihui Vision debe ejecutarse con `always thinking`. El intento previo con `enable_thinking=false` quedó corriendo y fue detenido. La validación API se repitió con `chat_template_kwargs.enable_thinking=true`.
+- **Opciones:** Forzar thinking OFF para respuestas rápidas, o aceptar always thinking y subir presupuesto de salida.
+- **Decisión:** Para Huihui Vision usar always thinking y `max_tokens>=2048` en tests/API.
+- **Por qué:** Huihui no respeta de forma confiable thinking OFF y puede consumir todo el presupuesto en `reasoning_content`; con `max_tokens=2048` produjo `content` válido en chat y una descripción visual coherente de 347 palabras.
+- **Descartado:** Usar `max_tokens=512` para pruebas de Huihui Vision; ya está documentado que puede devolver `content=""`.
+
+### D75: Huihui Vision no se usará para evaluar codegen largo
+- **Contexto:** Se probó un prompt de generación de código para `build_asset_manifest(records)` y tests `unittest` en `huihui-vision`. El modelo empezó con una respuesta extensa, produjo código parcial y terminó con `Context size has been exceeded`.
+- **Opciones:** Seguir ajustando Huihui Vision para codegen, compactar el prompt para pruebas puntuales, o mantener Qwen3 como modelo de ingeniería.
+- **Decisión:** Huihui Vision queda reservado para análisis visual. Las pruebas serias de desarrollo/codegen deben ejecutarse con Qwen3.6 en puerto 8013.
+- **Por qué:** STORY_023 ya había concluido que Huihui no reemplaza Qwen3.6 por latencia y comportamiento de thinking. La prueba de codegen confirmó que, para tareas largas de desarrollo, Qwen3 es el rol correcto.
+- **Descartado:** Usar Huihui Vision como evaluador principal de capacidades de desarrollador.
+
+---
+
+## 2026-05-02 — Sesión 20: STORY_025 Huihui Texto 32k
+
+### D76: Huihui texto puro no se incorpora como servicio permanente (revertido por D77)
+- **Contexto:** STORY_025 probó Huihui-Qwen3.5 sin `--mmproj` en puerto 8014 para recuperar VRAM y validar si podía operar a ctx=32768 con thinking intacto y tokens/s comparables a Qwen3.6. El modelo arrancó correctamente a ctx=32768, `reasoning_content` estuvo presente y T1/T2 pasaron hasta 32k; T3 4k también pasó.
+- **Decisión inicial:** No crear servicio permanente. Latencia 6.5–15.9× mayor que Qwen3.6 descartada como insuficiente.
+- **Revertido por D77:** Pruebas UAT conversacionales en Open WebUI demostraron calidad de razonamiento production-ready. Velocidad UAT aceptable para rol conversacional (no pipeline).
+
+## 2026-05-01 — Sesión 20 (continuación): Clawdbot + SearXNG + Web Search
+
+### D78: SearXNG como motor de Web Search para Open WebUI
+- **Contexto:** Se necesitaba habilitar acceso a internet desde Open WebUI para los modelos (especialmente Huihui Texto). Open WebUI soporta múltiples motores de búsqueda; se evaluaron opciones self-hosted vs API externa.
+- **Opciones:** SearXNG (self-hosted, sin API key, Docker), DuckDuckGo (sin API key pero externo), Brave Search (API key requerida), Google PSE (API key requerida).
+- **Decisión:** SearXNG en Docker en `http://10.1.0.105:8080` con `--restart unless-stopped`.
+- **Por qué:** Self-hosted, sin límites de queries, sin API key, privacidad total. Un solo contenedor Docker, mínima complejidad operativa.
+- **Resultado:** SearXNG operativo. Web Search activado en Open WebUI y validado en UAT por Arturo.
+
+### D79: Clawdbot (openclaw) reconfigurado con Huihui como primary y DeepSeek R1 como fallback
+- **Contexto:** Arturo quería que su agente openclaw (corriendo en `rdpuser@10.1.0.104`) usara el modelo local Huihui Texto como modelo principal en lugar de Gemini 2.5 Pro via cliproxy.
+- **Opciones:** Mantener Gemini 2.5 Pro como primary, usar Huihui como primary con DeepSeek fallback, usar DeepSeek como primary.
+- **Decisión:** Huihui Texto (`http://10.1.0.105:8012/v1`) como primary. DeepSeek R1 (`deepseek-reasoner`) como fallback 1. Gemini 2.5 Flash como fallback final.
+- **Por qué:** Huihui Texto es production-ready (D77) y está en la red local — latencia mínima, sin costo por token. DeepSeek R1 como fallback de calidad cuando Huihui no esté disponible.
+- **Implementación:** `~/clawdbot/config/clawdbot.json` modificado en 10.1.0.104. `openclaw-gateway.service` reiniciado vía `systemctl --user restart`. API key DeepSeek configurada directamente en el JSON.
+- **Descartado:** Gemini 2.5 Pro como primary — reemplazado por modelo local sin costo.
+
+### D77: Huihui texto puro adoptado como production-ready para razonamiento conversacional
+- **Contexto:** Sesión 20 — tras STORY_025 (que cerró por velocidad en benchmarks sintéticos), se ejecutaron 3 pruebas UAT en Open WebUI con el modelo corriendo en puerto 8012 sin mmproj a ctx=32768:
+  - **UAT-1 Lógica (cajas):** respuesta correcta al 100%, ambos escenarios A/B, thinking 24s, español limpio.
+  - **UAT-2 Arquitectura (inventario videojuego):** diseño completo TypeScript — ItemDefinition, InventorySlot, ItemCombiner, serialización con versionamiento, 7 edge cases incluyendo dependencias circulares, diagrama de clases ASCII, checklist de validación. Thinking 29s.
+  - **UAT-3 Multi-turn (adivinanza):** búsqueda binaria óptima mantenida a través de 3 turnos, árbol de decisión proyectado, verificación `2⁷=128≥100`, estado del rango preservado correctamente entre turnos. Thinking 8–15s.
+- **Opciones:** mantener solo para visión, aceptar para razonamiento conversacional con restricción de velocidad, o buscar modelo alternativo más rápido.
+- **Decisión:** Huihui texto puro (sin mmproj, ctx=32768, puerto 8012) es **production-ready para razonamiento conversacional**. La velocidad de benchmark sintético (6.5–15.9× Qwen3.6) es irrelevante para el rol UAT — en conversación en Open WebUI la latencia de thinking es aceptable.
+- **Restricción de velocidad como criterio de aceptación en UAT:** aprobado. La validación de velocidad en UAT (no en benchmark sintético) es el criterio correcto para este rol.
+- **Por qué:** Los 3 tests UAT pasaron sin fallo: razonamiento por eliminación, diseño arquitectónico profundo, y estado multi-turn persistente. El destilado Claude 4.6 Opus produce calidad de razonamiento superior a Qwen3.6 en tareas no determinísticas. El idioma español se mantiene limpio con system prompt de enforcement.
+- **Rol definitivo:** razonamiento conversacional largo uncensored — análisis narrativo, diseño de sistemas, decisiones de arquitectura, razonamiento multi-turn en Open WebUI.
+- **NO usar para:** pipelines encadenados, extracción JSON automatizada, codegen en pipeline.
+- **Configuración de producción:** ctx=32768, KV q8_0, thinking ON, max_tokens≥2048, system prompt con enforcement de español, puerto 8012.
+
+---
+
+## 2026-05-02 — Sesión 21: Análisis de Stack + Upgrade Path
+
+### D80: Stack especializado confirmado — no reemplazable por un único modelo
+- **Contexto:** El usuario preguntó si Huihui (con su calidad de razonamiento demostrada en UAT) podía reemplazar a todos los modelos del stack.
+- **Análisis:** Huihui es superior en razonamiento conversacional libre, pero falla en los requisitos operativos de pipeline: T1 JSON en 19s vs 1.9s de Qwen3.6, thinking OFF no confiable, codegen falla por ctx exceeded.
+- **Decisión:** Stack especializado se mantiene. Cada modelo cubre un rol que los demás no pueden cubrir con los mismos parámetros de calidad + velocidad.
+- **Por qué:** La especialización no es arbitraria — es el resultado directo de los benchmarks de STORY_023/024/025. El rol de cada modelo está validado empíricamente.
+
+### D81: Candidatos de upgrade para visión y razonamiento identificados via Perplexity
+- **Contexto:** Búsqueda en HuggingFace de modelos MoE destilados + abliterados en rango 26B–35B y 57B–122B.
+- **Candidatos confirmados:**
+  - **Visión:** Qwen2.5-VL-32B-abliterated (mradermacher) — arquitectura nativa qwen2vl, MMMU 70.0, ctx=32K, mmproj propio. Reemplaza Huihui Vision (STORY_027).
+  - **Razonamiento texto:** Huihui-Qwen3.6-35B-A3B-Claude-4.7-Opus-abliterated (whoya) — sucesor directo con destilación 4.7 y base Qwen3.6. Drop-in replacement (STORY_028).
+  - **MoE Large:** 67B-A3B merge experimental (huihui-ai, sin GGUF aún), 122B-A10B (disponible, sin distilación), Qwen3-57B-A14B (verificar fork abliterado). Todos bloqueados por RAM (STORY_029).
+- **Decisión:** Crear STORY_027, STORY_028 y STORY_029 para implementación por Codex.
+- **Por qué:** Los upgrades son incrementales y no disruptivos — misma arquitectura, mismos parámetros de arranque, misma suite de validación. El riesgo es mínimo.
+
+### D82: Upgrade RAM 32→64GB DDR4 identificado como el de mejor costo/beneficio del stack
+- **Contexto:** Análisis de qué desbloquea cada tipo de upgrade de hardware.
+- **Opciones evaluadas:** GPU upgrade (P40/3090, $80-800 USD), RAM upgrade (DDR4 32GB, $40-60 USD).
+- **Decisión:** RAM es el upgrade prioritario por costo/beneficio. $40-60 USD desbloquea modelos MoE 57B+ (Qwen3-57B-A14B con 14B activos/token vs 3B actuales, 67B merge si sale GGUF).
+- **Por qué:** Los MoE escalan bien con RAM porque los expertos corren en CPU/RAM de todas formas (--n-cpu-moe 99). Más RAM = modelos más grandes sin cambiar GPU ni velocidad de VRAM. Modelos densos 70B+ también posibles pero lentos (2-5 tok/s) — útiles solo para análisis offline.
+- **Descartado para ahora:** GPU upgrade — mayor costo, mayor complejidad, requiere cambio de motherboard para dual GPU (D24).
+- **Bloqueante STORY_029:** upgrade de RAM es el único requisito.
+
+---
+
+## 2026-05-02 — Sesión 22: STORY_027 Cierre + SuperGemma4 Vision
+
+### D83: SuperGemma4-26B-abliterated-multimodal adoptado como modelo de visión definitivo
+- **Contexto:** STORY_027 inició buscando reemplazar Huihui Vision. Se probaron 3 candidatos: Qwen2.5-VL-32B (calidad excelente, ~1.46 tok/s — rechazado), Qwen2.5-VL-7B (rápido, calidad pobre — rechazado), y SuperGemma4-26B multimodal (kof1467).
+- **Decisión:** `supergemma4-26b-abliterated-multimodal-Q4_K_M.gguf` de kof1467 adoptado como backend definitivo de `llama-vision.service`.
+- **Por qué:** Misma arquitectura MoE Gemma 4 26B-A4B que Ornstein/SuperGemma/TrevorJS (ya validada en producción). Abliterado. Visión nativa (no mmproj genérico). UAT PASS: descripción estructurada en iluminación/composición/assets sin alucinaciones de IP. Fuente: `kof1467/supergemma4-26b-abliterated-multimodal-gguf-4bit`.
+
+### D84: Thinking OFF obligatorio para SuperGemma4 Vision — limitación de llama.cpp b8998
+- **Contexto:** Al activar thinking en SuperGemma4 Vision, el modelo emite reasoning channel markers de Gemma 4 (`<channel|>`) que llama.cpp b8998 no parsea como `reasoning_content` — los emite como tokens `|` en el output, corrompiendo la respuesta. Se intentaron: `enable_thinking:true` sin template y con `chat_template.jinja` customizado del repo kof1467.
+- **Decisión:** Thinking OFF permanente para `llama-vision.service` hasta que llama.cpp tenga soporte nativo de Gemma 4 reasoning channels.
+- **Por qué:** La calidad de análisis visual a 26B MoE sin thinking ya es production-ready para el pipeline de art direction. El UAT pasó sin thinking.
+
+### D85: Huihui Texto y Huihui Vision eliminados del servidor — Clawdbot cae a DeepSeek R1
+- **Contexto:** Cleanup de modelos fallidos en esta sesión. `models/huihui/` (21GB), `models/qwen25vl/` (20GB), `models/qwen25vl7b/` (5.2GB) y `models/multimodal/` (vacío) fueron eliminados. El GGUF de Huihui era el modelo primario de Clawdbot (D79).
+- **Decisión:** Eliminados definitivamente. Clawdbot usa DeepSeek R1 como fallback hasta que STORY_028 proporcione un nuevo modelo de razonamiento conversacional.
+- **Impacto:** Disco pasó de 89% (23GB libres) a 78% (46GB libres). Stack de visión consolidado en SuperGemma4 Vision.
+
+---
+
+## 2026-05-02 — Sesión 23: SearXNG Fix + Sudoers
+
+### D86: SearXNG web search roto — formato JSON no estaba habilitado en settings.yml
+- **Contexto:** Web search en Open WebUI devolvía "An error occurred while searching the web". El contenedor estaba corriendo pero `/search?q=test&format=json` devolvía 403.
+- **Causa raíz:** `/home/asalazar/searxng/settings.yml` tenía solo `html` en la lista de formatos habilitados — faltaba `json`. Open WebUI requiere el endpoint JSON para hacer las búsquedas.
+- **Fix:** Agregado `- json` a la sección `formats:` en `settings.yml` y reiniciado el contenedor Docker. Web search validado: 200 OK.
+- **Por qué:** El formato JSON de SearXNG está deshabilitado por defecto por seguridad — hay que habilitarlo explícitamente cuando se usa con Open WebUI.
+
+### D87: asalazar agregado a sudoers NOPASSWD en servidor Debian
+- **Contexto:** Cada operación con sudo requería el workaround del heredoc con contraseña literal, consumiendo tokens extra en reintentos.
+- **Decisión:** Creado `/etc/sudoers.d/asalazar` con `asalazar ALL=(ALL) NOPASSWD: ALL`. Validado con `visudo -c`.
+- **Por qué:** El servidor es de uso personal/privado — el riesgo de NOPASSWD es aceptable. Elimina la fricción operativa en automatizaciones SSH.
+
+---
+
+## 2026-05-02 — Sesión 24: STORY_028 Huihui Claude 4.7 — Sage
+
+### D91: Fork de Open WebUI descartado para VOID_ENGINE
+- **Contexto:** El usuario preguntó si era viable hacer un fork de Open WebUI como base para la plataforma VOID_ENGINE.
+- **Opciones:** Fork Open WebUI (SvelteKit + FastAPI), construir VOID_ENGINE desde cero (AdonisJS + HTMX + Alpine.js).
+- **Decisión:** Fork descartado. VOID_ENGINE se construye desde cero sobre el stack planificado.
+- **Por qué:** Open WebUI es SvelteKit + FastAPI — stack incompatible con AdonisJS. Es chat-first, no workflow-first. Mantener un fork divergente de un proyecto activo genera deuda técnica creciente sin valor para el pipeline de orquestación. Open WebUI sigue en su rol actual (chat conversacional con los modelos); VOID_ENGINE es la capa de orquestación que Open WebUI nunca cubrirá.
+
+### D92: Fuente DArkkercornner generada desde PNG — resultado parcial, no funcional
+- **Contexto:** El usuario tenía solo la imagen `darkercornner_font.png` (specimen sheet) sin los archivos de fuente originales de Nano Banana Pro.
+- **Opciones:** (A) Buscar archivos TTF/OTF en el paquete de descarga original, (B) Generar fuente programáticamente desde el PNG via potrace + fonttools.
+- **Decisión:** Se intentó opción B. Se instalaron `potrace` (brew), `Pillow`, `fonttools`, `numpy` en venv. Script `scripts/build_font.py` generó `assets/fonts/DArkkercornner.otf` con 45/52 glifos (A–X mayúsculas, a–u minúsculas).
+- **Resultado:** OTF generada pero reportada como no funcional por el usuario. Causa exacta desconocida (glifos mal vectorizados, métricas incorrectas, o problema de instalación).
+- **Pendiente:** Diagnosticar fallo — ¿problema de instalación o de calidad de glifos? Considerar alternativas: reparar script, usar FontForge para corrección manual, o contactar a Nano Banana Pro por los archivos originales.
+
+### D90: Nombre de estudio definido — DArkkercornner Studios
+- **Contexto:** El proyecto necesitaba identidad de estudio para branding, créditos y futura presencia pública.
+- **Decisión:** El estudio se llamará **DArkkercornner Studios**.
+- **Impacto:** Registrado en `project_state.md`. Aplicar en branding de VOID_ENGINE, créditos del juego, y cualquier artefacto público futuro.
+
+### D89: Huihui Claude 4.7 adoptado como "Sage" — reemplaza razonamiento conversacional y cubre ingeniería a ctx=32k
+- **Contexto:** STORY_028 ejecutada en sesión 24. Descarga Q4_K_M (21.3 GB) de mradermacher. Arquitectura qwen35moe compatible con llama.cpp b8998.
+- **Suite UAT:** 5/5 PASS — T1 Lógica (248 palabras), T2 Arquitectura TypeScript (2551 palabras), T3 Multi-turn búsqueda binaria óptima, T4 JSON baseline+32k, T5 Codegen baseline+32k.
+- **Decisión:** Adoptado como modelo de razonamiento conversacional uncensored. Alias en switch-model.sh: `sage`. Servicio: `llama-huihui47.service`, puerto 8012, ctx=32768.
+- **Hallazgo técnico:** max_tokens mínimo para este modelo con thinking ON = ~3000 (el thinking consume hasta 5000 chars de reasoning antes de emitir contenido). Mismo patrón que Huihui 4.6.
+- **Pendiente usuario:** decidir si eliminar `llama-qwen3.service` + modelos Qwen3 (~20GB). T4/T5 PASS implica que Sage puede cubrir ese rol, pero Qwen3 es más rápido para pipeline encadenado.
+- **Por qué `sage`:** nombre descriptivo para un razonador potente sin censura — contrasta bien con los modelos creativos del stack.
+
+### D90: Nombre de estudio definido — DArkkercornner Studios
+- **Contexto:** El proyecto necesitaba identidad de estudio para branding, créditos y futura presencia pública.
+- **Decisión:** El estudio se llamará **DArkkercornner Studios**.
+- **Impacto:** Registrado en `project_state.md`. Aplicar en branding de VOID_ENGINE, créditos del juego, y cualquier artefacto público futuro.
+
+### D88: STORY_028 expandida — Huihui 4.7 reemplaza también a Qwen3.6 base (no solo Huihui 4.6)
+- **Contexto:** Al revisar STORY_028 el usuario señaló que el Qwen3.6 base es censurado y que el objetivo es mantener el mismo performance + ventana de contexto larga (ctx=40,960) pero con un modelo uncensored.
+- **Opciones:** (1) Huihui 4.7 solo reemplaza Huihui 4.6 — dos modelos coexisten. (2) Huihui 4.7 reemplaza ambos si pasa tests de ingeniería a ctx largo.
+- **Decisión:** Opción 2. Suite UAT extendida con T4 (JSON extraction) y T5 (codegen TypeScript), ambos validados a ctx baseline y ctx=32k (needle-in-haystack). Si PASS completo: se elimina llama-qwen3.service y modelos Qwen3 (~20GB).
+- **Por qué:** Huihui 4.7 es abliterated sobre la misma base Qwen3.6 — arquitectura idéntica. La distilación Claude 4.7 no debería degradar la capacidad de extracción JSON ni codegen. Si mantiene ctx largo, es un upgrade directo con el beneficio de ser uncensored.

@@ -1,0 +1,132 @@
+### RUN T1 4k 2026-05-01T20:29:50-06:00
+
+============================================================
+T1 - Extracción JSON | ctx=4k | thinking=True
+============================================================
+  Tiempo: 12.41s
+  Usage: {"completion_tokens": 374, "prompt_tokens": 4234, "total_tokens": 4608, "prompt_tokens_details": {"cached_tokens": 4230}}
+  OK T1: reasoning presente (139 palabras)
+  JSON válido: OK
+  Valores correctos: 4/4
+  Resultado: PASS
+### EXIT T1 4k 0
+### RUN T1 8k 2026-05-01T20:30:03-06:00
+
+============================================================
+T1 - Extracción JSON | ctx=8k | thinking=True
+============================================================
+  Tiempo: 45.19s
+  Usage: {"completion_tokens": 330, "prompt_tokens": 8259, "total_tokens": 8589, "prompt_tokens_details": {"cached_tokens": 0}}
+  OK T1: reasoning presente (132 palabras)
+  JSON válido: OK
+  Valores correctos: 4/4
+  Resultado: PASS
+### EXIT T1 8k 0
+### RUN T1 16k 2026-05-01T20:30:48-06:00
+
+============================================================
+T1 - Extracción JSON | ctx=16k | thinking=True
+============================================================
+  Tiempo: 78.23s
+  Usage: {"completion_tokens": 350, "prompt_tokens": 16277, "total_tokens": 16627, "prompt_tokens_details": {"cached_tokens": 0}}
+  OK T1: reasoning presente (125 palabras)
+  JSON válido: OK
+  Valores correctos: 4/4
+  Resultado: PASS
+### EXIT T1 16k 0
+### RUN T1 24k 2026-05-01T20:32:07-06:00
+
+============================================================
+T1 - Extracción JSON | ctx=24k | thinking=True
+============================================================
+  Tiempo: 78.85s
+  Usage: {"completion_tokens": 324, "prompt_tokens": 24295, "total_tokens": 24619, "prompt_tokens_details": {"cached_tokens": 8192}}
+  OK T1: reasoning presente (132 palabras)
+  JSON válido: OK
+  Valores correctos: 4/4
+  Resultado: PASS
+### EXIT T1 24k 0
+### RUN T1 32k 2026-05-01T20:33:26-06:00
+
+============================================================
+T1 - Extracción JSON | ctx=32k | thinking=True
+============================================================
+  Tiempo: 75.45s
+  Usage: {"completion_tokens": 210, "prompt_tokens": 32313, "total_tokens": 32523, "prompt_tokens_details": {"cached_tokens": 16384}}
+  OK T1: reasoning presente (75 palabras)
+  JSON válido: OK
+  Valores correctos: 4/4
+  Resultado: PASS
+### EXIT T1 32k 0
+### RUN T2 4k 2026-05-01T20:34:41-06:00
+
+============================================================
+T2 - Tool call MCP | ctx=4k | thinking=True
+============================================================
+  Tiempo: 31.57s
+  Usage: {"completion_tokens": 409, "prompt_tokens": 4283, "total_tokens": 4692, "prompt_tokens_details": {"cached_tokens": 0}}
+  OK T2: reasoning presente (158 palabras)
+  JSON válido: OK
+  Valores correctos: 4/4
+  Resultado: PASS
+### EXIT T2 4k 0
+### RUN T2 8k 2026-05-01T20:35:13-06:00
+
+============================================================
+T2 - Tool call MCP | ctx=8k | thinking=True
+============================================================
+  Tiempo: 45.99s
+  Usage: {"completion_tokens": 352, "prompt_tokens": 8308, "total_tokens": 8660, "prompt_tokens_details": {"cached_tokens": 0}}
+  OK T2: reasoning presente (123 palabras)
+  JSON válido: OK
+  Valores correctos: 4/4
+  Resultado: PASS
+### EXIT T2 8k 0
+### RUN T2 16k 2026-05-01T20:35:59-06:00
+
+============================================================
+T2 - Tool call MCP | ctx=16k | thinking=True
+============================================================
+  Tiempo: 78.6s
+  Usage: {"completion_tokens": 362, "prompt_tokens": 16326, "total_tokens": 16688, "prompt_tokens_details": {"cached_tokens": 0}}
+  OK T2: reasoning presente (130 palabras)
+  JSON válido: OK
+  Valores correctos: 4/4
+  Resultado: PASS
+### EXIT T2 16k 0
+### RUN T2 24k 2026-05-01T20:37:18-06:00
+
+============================================================
+T2 - Tool call MCP | ctx=24k | thinking=True
+============================================================
+  Tiempo: 76.77s
+  Usage: {"completion_tokens": 264, "prompt_tokens": 24344, "total_tokens": 24608, "prompt_tokens_details": {"cached_tokens": 8192}}
+  OK T2: reasoning presente (92 palabras)
+  JSON válido: OK
+  Valores correctos: 4/4
+  Resultado: PASS
+### EXIT T2 24k 0
+### RUN T2 32k 2026-05-01T20:38:35-06:00
+
+============================================================
+T2 - Tool call MCP | ctx=32k | thinking=True
+============================================================
+  Tiempo: 77.43s
+  Usage: {"completion_tokens": 257, "prompt_tokens": 32362, "total_tokens": 32619, "prompt_tokens_details": {"cached_tokens": 16384}}
+  OK T2: reasoning presente (86 palabras)
+  JSON válido: OK
+  Valores correctos: 4/4
+  Resultado: PASS
+### EXIT T2 32k 0
+### RUN T3 4k 2026-05-01T20:39:52-06:00
+
+============================================================
+T3 - Codegen | ctx=4k | thinking=True
+============================================================
+  Tiempo: 40.8s
+  Usage: {"completion_tokens": 686, "prompt_tokens": 4284, "total_tokens": 4970, "prompt_tokens_details": {"cached_tokens": 0}}
+  OK T3: reasoning presente (209 palabras)
+  Checks: 5/5
+  Resultado: PASS
+### EXIT T3 4k 0
+### RUN T3 8k 2026-05-01T20:40:33-06:00
